@@ -3,125 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pip-Boy 3000 - Ultimate Edition</title>
+    <title>Pip-Boy 3000 - Professional Replica</title>
     <style>
+        /* AUTHENTIC PIP-BOY 3000 STYLING
+           Designed for high-fidelity CRT simulation
+        */
         :root {
             --pip-green: #1aff80;
-            --pip-green-dim: rgba(26, 255, 128, 0.15);
-            --pip-glow: rgba(26, 255, 128, 0.4);
+            --pip-green-dim: rgba(26, 255, 128, 0.12);
+            --pip-green-med: rgba(26, 255, 128, 0.4);
+            --pip-glow: rgba(26, 255, 128, 0.6);
             --pip-bg: #0b140e;
-            --crt-curve: perspective(1000px) rotateX(2deg) rotateY(-1deg);
+            --crt-curve: perspective(1200px) rotateX(2.5deg) rotateY(-1.5deg);
         }
 
-        * { box-sizing: border-box; }
-
-        @font-face {
-            font-family: 'PipBoyFont';
-            src: local('Courier New');
+        * { 
+            box-sizing: border-box;
+            cursor: default;
         }
 
         body {
-            background-color: #050505;
+            background-color: #020202;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: 'PipBoyFont', 'Monaco', 'Consolas', monospace;
+            font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             color: var(--pip-green);
             text-transform: uppercase;
         }
 
-        /* --- THE FIXED BORDER CONTAINER --- */
+        /* --- HARDWARE CHASSIS --- */
         .pipboy-module {
-            width: 800px;
-            height: 600px;
+            width: 900px;
+            height: 680px;
             position: relative;
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            background-image: url('assets/screen/monitorborder.png'); 
-            transition: background-image 0.1s;
+            /* Placeholder for the physical bezel image */
+            background-image: url('https://i.imgur.com/G4VzF4M.png'); 
         }
 
         .pipboy-module.off {
-            background-image: url('assets/screen/monitorborder-off.png');
+            filter: brightness(0.1);
         }
 
-        /* --- THE ACTUAL SCREEN --- */
+        /* --- CRT SCREEN CONTAINER --- */
         .screen-area {
             position: absolute;
-            top: 65px;
-            left: 85px;
-            width: 630px;
-            height: 400px;
-            background-image: url('assets/screen/bg.png');
-            background-size: cover;
+            top: 85px;
+            left: 110px;
+            width: 670px;
+            height: 440px;
+            background-color: #050a05;
+            background-image: radial-gradient(circle, #1a2e1a 0%, #050a05 100%);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             color: var(--pip-green);
-            text-shadow: 2px 0 8px var(--pip-glow), -2px 0 8px var(--pip-glow);
+            text-shadow: 0 0 5px var(--pip-glow);
             z-index: 1;
-            animation: micro-flicker 0.12s infinite;
-            border-radius: 15px;
+            border-radius: 25px;
             transform: var(--crt-curve);
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+            box-shadow: inset 0 0 60px rgba(0,0,0,1), 0 0 20px rgba(26, 255, 128, 0.1);
+            border: 2px solid #152515;
         }
 
-        .off .screen-area {
-            display: none;
+        /* Scanline Overlay */
+        .scanlines {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 3px;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0.8;
         }
 
-        /* Phosphor Persistence Effect */
-        .screen-area::after {
+        /* Screen Flicker Base */
+        .screen-area::before {
             content: " ";
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: rgba(18, 16, 16, 0.03);
+            background: rgba(26, 255, 128, 0.02);
             opacity: 0;
-            z-index: 20;
+            z-index: 49;
             pointer-events: none;
+            animation: static-noise 0.2s infinite;
         }
 
-        .scanline {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0; left: 0;
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.2) 50%
-            );
-            background-size: 100% 4px;
-            z-index: 10;
-            pointer-events: none;
+        @keyframes static-noise {
+            0% { transform: translate(0,0) }
+            10% { transform: translate(-1%,-1%) }
+            20% { transform: translate(1%,1%) }
+            30% { transform: translate(-1%,1%) }
+            40% { transform: translate(1%,-1%) }
+            50% { transform: translate(-1%,0) }
+            60% { transform: translate(1%,0) }
+            70% { transform: translate(0,-1%) }
+            80% { transform: translate(0,1%) }
+            90% { transform: translate(1%,1%) }
+            100% { transform: translate(0,0) }
         }
 
-        /* --- AUTHENTIC TOP NAV --- */
+        /* --- HEADER & NAVIGATION --- */
         header {
-            padding: 15px 40px 0 40px;
-            z-index: 2;
+            padding: 20px 50px 0 50px;
+            z-index: 10;
         }
 
-        .top-nav {
+        .main-nav {
             display: flex;
             justify-content: space-between;
-            border-bottom: 3px solid var(--pip-green);
-            padding-bottom: 5px;
-            margin-bottom: 5px;
+            border-bottom: 4px solid var(--pip-green);
+            padding-bottom: 2px;
         }
 
         .nav-item {
             cursor: pointer;
+            font-size: 1.6rem;
             font-weight: 900;
+            letter-spacing: 4px;
             opacity: 0.4;
             transition: 0.1s;
-            font-size: 1.5rem;
-            letter-spacing: 3px;
-            user-select: none;
+        }
+
+        .nav-item:hover {
+            opacity: 0.7;
         }
 
         .nav-item.active {
@@ -129,404 +144,557 @@
             text-shadow: 0 0 15px var(--pip-green);
         }
 
-        /* Sub-nav bar */
         .sub-nav {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            padding: 5px 0;
-            font-size: 0.85rem;
-            font-weight: 900;
+            gap: 25px;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            font-weight: bold;
         }
 
-        .sub-item {
-            opacity: 0.6;
+        .sub-tab {
             cursor: pointer;
-            padding: 2px 8px;
-            transition: all 0.1s;
+            opacity: 0.6;
+            padding: 2px 12px;
+            transition: 0.15s;
         }
 
-        .sub-item:hover {
-            opacity: 0.9;
+        .sub-tab:hover {
+            opacity: 1;
+            background: var(--pip-green-dim);
         }
 
-        .sub-item.active {
+        .sub-tab.active {
             opacity: 1;
             background: var(--pip-green);
             color: #0b140e;
             text-shadow: none;
         }
 
-        #content {
+        /* --- CONTENT AREA --- */
+        #viewport {
             flex-grow: 1;
-            padding: 5px 40px;
-            position: relative;
-            z-index: 2;
+            padding: 10px 50px;
             overflow-y: hidden;
+            position: relative;
+            z-index: 5;
         }
 
+        /* --- FOOTER --- */
         footer {
-            padding: 8px 40px;
-            border-top: 2px solid var(--pip-green);
-            font-size: 14px;
+            height: 50px;
+            border-top: 3px solid var(--pip-green);
+            margin: 0 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-weight: 900;
-            display: flex;
-            justify-content: space-between;
-            z-index: 2;
-            background: rgba(0,0,0,0.3);
+            font-size: 0.9rem;
+            background: rgba(0,0,0,0.4);
         }
 
-        /* --- DATA LAYOUTS --- */
-        .list-view {
+        .footer-stat-group {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-top: 10px;
+            gap: 20px;
         }
 
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 2px 5px;
+        /* --- REUSABLE COMPONENTS --- */
+        .list-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .scroll-list {
+            height: 250px;
+            overflow-y: auto;
+            border-right: 1px solid var(--pip-green-dim);
+            padding-right: 10px;
+        }
+
+        .list-entry {
+            padding: 5px 10px;
+            margin-bottom: 2px;
             cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            transition: 0.1s;
         }
 
-        .list-item.selected {
+        .list-entry:hover {
             background: var(--pip-green-dim);
         }
 
-        .status-layout {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            height: 100%;
-            align-items: center;
+        .list-entry.selected {
+            background: var(--pip-green-med);
+            color: #fff;
         }
 
-        .vault-boy-container {
-            position: relative;
-            height: 200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .limb-label {
-            position: absolute;
-            font-size: 0.75rem;
-            font-weight: 900;
-            background: black;
-            padding: 0 2px;
-        }
-
-        .limb-hd { top: 5%; left: 50%; transform: translateX(-50%); }
-        .limb-la { top: 45%; left: 15%; }
-        .limb-ra { top: 45%; right: 15%; }
-        .limb-ll { bottom: 5%; left: 30%; }
-        .limb-rl { bottom: 5%; right: 30%; }
-
-        .stat-sidebar {
+        .info-panel {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding-left: 20px;
         }
 
-        .stat-row {
-            margin-bottom: 5px;
+        .detail-box {
+            border: 2px solid var(--pip-green);
+            padding: 15px;
+            background: rgba(0,0,0,0.5);
+            font-size: 0.85rem;
+            line-height: 1.4;
+            flex-grow: 1;
         }
 
-        .bar-label {
+        /* Progress Bars */
+        .progress-bar-wrap {
+            margin-bottom: 12px;
+        }
+
+        .pb-label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
-            margin-bottom: 3px;
-            font-weight: 900;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
         }
 
-        .bar-outer {
-            width: 100%;
+        .pb-outer {
             height: 12px;
             border: 1px solid var(--pip-green);
             padding: 1px;
-            background: rgba(0,0,0,0.5);
         }
 
-        .bar-inner {
+        .pb-inner {
             height: 100%;
             background: var(--pip-green);
             box-shadow: 0 0 10px var(--pip-green);
         }
 
-        /* --- GENERAL UI --- */
-        .low-battery {
-            color: #ff4444;
-            animation: blink 1.5s infinite;
+        /* Special Layout: Status/Condition */
+        .condition-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+            align-items: center;
         }
 
-        .details-pane {
-            border: 1px solid var(--pip-green);
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 0.8rem;
-            background: rgba(0,0,0,0.4);
+        .vault-boy-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 220px;
         }
 
-        /* --- ANIMATIONS --- */
-        @keyframes micro-flicker {
-            0% { opacity: 0.99; }
-            50% { opacity: 1; }
-            100% { opacity: 0.98; }
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        @keyframes flicker-anim {
-            0% { filter: brightness(1.3); }
-            50% { filter: brightness(0.7); }
-            100% { filter: brightness(1); }
-        }
-
-        .screen-flicker {
-            animation: flicker-anim 0.08s steps(2) infinite !important;
-        }
-
-        /* Power Button Click Area */
-        .power-btn {
+        .limb-indicator {
             position: absolute;
-            bottom: 45px;
-            right: 125px;
-            width: 60px;
-            height: 60px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            border: 1px solid var(--pip-green);
+            padding: 1px 4px;
+            background: black;
+        }
+
+        .limb-head { top: 5%; left: 50%; transform: translateX(-50%); }
+        .limb-la { top: 40%; left: 15%; }
+        .limb-ra { top: 40%; right: 15%; }
+        .limb-ll { bottom: 5%; left: 25%; }
+        .limb-rl { bottom: 5%; right: 25%; }
+
+        /* --- ANIMATIONS & EFFECTS --- */
+        @keyframes micro-flicker {
+            0% { opacity: 0.98; filter: brightness(1); }
+            50% { opacity: 1; filter: brightness(1.05); }
+            100% { opacity: 0.99; filter: brightness(0.95); }
+        }
+
+        .flicker-heavy {
+            animation: heavy-flicker-anim 0.1s steps(2) infinite;
+        }
+
+        @keyframes heavy-flicker-anim {
+            0% { opacity: 1; filter: contrast(1.2) brightness(1.2); }
+            50% { opacity: 0.7; filter: contrast(0.8) brightness(0.6); }
+            100% { opacity: 1; }
+        }
+
+        .tab-transition {
+            animation: slide-in 0.2s ease-out;
+        }
+
+        @keyframes slide-in {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--pip-green); }
+
+        .btn-power {
+            position: absolute;
+            bottom: 60px;
+            right: 140px;
+            width: 70px;
+            height: 70px;
             cursor: pointer;
             z-index: 100;
+            border-radius: 50%;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--pip-green); }
+        /* Radio Visualizer Bars */
+        .visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 40px;
+            margin-top: 10px;
+        }
+        .v-bar {
+            width: 4px;
+            background: var(--pip-green);
+            animation: v-jump 0.5s infinite alternate;
+        }
+        @keyframes v-jump {
+            from { height: 5px; }
+            to { height: 100%; }
+        }
     </style>
 </head>
 <body>
 
-<div class="pipboy-module" id="pipboy">
-    <div class="screen-area" id="screen">
-        <div class="scanline"></div>
+<div class="pipboy-module" id="pip-chassis">
+    <div class="screen-area" id="crt-screen">
+        <div class="scanlines"></div>
         
         <header>
-            <div class="top-nav">
-                <div class="nav-item active" onclick="setMainTab('STAT', this)">STAT</div>
-                <div class="nav-item" onclick="setMainTab('INV', this)">INV</div>
-                <div class="nav-item" onclick="setMainTab('DATA', this)">DATA</div>
+            <nav class="main-nav">
+                <div class="nav-item active" onclick="ui.changeMainTab('STAT', this)">STAT</div>
+                <div class="nav-item" onclick="ui.changeMainTab('INV', this)">INV</div>
+                <div class="nav-item" onclick="ui.changeMainTab('DATA', this)">DATA</div>
+            </nav>
+            <div class="sub-nav" id="sub-nav">
+                <!-- Sub tabs dynamic -->
             </div>
-            <div class="sub-nav" id="sub-nav-container"></div>
         </header>
 
-        <div id="content"></div>
+        <main id="viewport">
+            <!-- Content dynamic -->
+        </main>
 
         <footer>
-            <span id="footer-left">HP 185/200</span>
-            <span id="footer-center">LEVEL 24</span>
-            <span id="footer-right" class="low-battery">BATTERY 2%</span>
+            <div class="footer-stat-group">
+                <span id="f-hp">HP 240/240</span>
+                <span id="f-lvl">LEVEL 32</span>
+            </div>
+            <div class="footer-stat-group">
+                <span id="f-ap">AP 85/85</span>
+                <span style="color: #ff4444; animation: blink 1.5s infinite;">LOW BATTERY</span>
+            </div>
         </footer>
     </div>
-    
-    <div class="power-btn" onclick="togglePower()"></div>
+
+    <!-- Hidden Interaction Layer -->
+    <div class="btn-power" onclick="ui.togglePower()"></div>
 </div>
 
 <script>
-    let isPoweredOn = true;
-    let currentMainTab = 'STAT';
-    const contentDiv = document.getElementById('content');
-    const subNavDiv = document.getElementById('sub-nav-container');
-    const screen = document.getElementById('screen');
-    const pipboy = document.getElementById('pipboy');
+/**
+ * PIP-BOY 3000 CORE LOGIC
+ * High-Density Data & Interaction System
+ */
 
-    const subTabs = {
-        STAT: ['CND', 'SPECIAL', 'PERKS', 'GENERAL'],
-        INV: ['WEAPONS', 'APPAREL', 'AID', 'MISC', 'AMMO'],
-        DATA: ['QUESTS', 'MAP', 'RADIO']
-    };
+const ENGINE_DATA = {
+    STAT: {
+        tabs: ['CND', 'SPECIAL', 'PERKS', 'GENERAL'],
+        content: {
+            CND: {
+                type: 'status',
+                limbs: { head: 100, la: 85, ra: 100, ll: 95, rl: 100 },
+                stats: [
+                    { label: 'GUNS', val: 100 },
+                    { label: 'ENERGY WEAP.', val: 45 },
+                    { label: 'EXPLOSIVES', val: 60 },
+                    { label: 'MELEE', val: 30 }
+                ]
+            },
+            SPECIAL: [
+                { id: 'S', name: 'STRENGTH', val: 8, desc: 'A MEASURE OF YOUR RAW PHYSICAL POWER. IT AFFECTS CARRY WEIGHT AND MELEE DAMAGE.' },
+                { id: 'P', name: 'PERCEPTION', val: 6, desc: 'AFFECTS WEAPON ACCURACY IN V.A.T.S. AND DETECTION OF ENEMIES ON COMPASS.' },
+                { id: 'E', name: 'ENDURANCE', val: 9, desc: 'DETERMINES TOTAL HIT POINTS, RESISTANCE TO POISON/RADIATION, AND SPRINTING DRAIN.' },
+                { id: 'C', name: 'CHARISMA', val: 5, desc: 'INFLUENCES SUCCESS IN DIALOGUE CHALLENGES AND PRICES AT TRADERS.' },
+                { id: 'I', name: 'INTELLIGENCE', val: 10, desc: 'DETERMINES THE NUMBER OF SKILL POINTS EARNED PER LEVEL UP.' },
+                { id: 'A', name: 'AGILITY', val: 7, desc: 'DETERMINES THE TOTAL NUMBER OF ACTION POINTS AVAILABLE FOR V.A.T.S.' },
+                { id: 'L', name: 'LUCK', val: 6, desc: 'RAISES THE CHANCE OF CRITICAL HITS AND IMPROVES CHANCES IN ALL GAMES OF CHANCE.' }
+            ],
+            PERKS: [
+                { name: 'BLOODY MESS', rank: 1, desc: 'YOU DEAL +5% OVERALL DAMAGE. ENEMIES OFTEN EXPLODE INTO RED PASTE UPON DEATH.' },
+                { name: 'TOUGHNESS', rank: 2, desc: 'YOUR OVERALL DAMAGE RESISTANCE IS INCREASED BY 10%.' },
+                { name: 'COMMANDO', rank: 1, desc: 'ACCURACY WITH TWO-HANDED AUTOMATIC WEAPONS IS INCREASED BY 15%.' },
+                { name: 'GRIM REAPER SPRINT', rank: 1, desc: 'A KILL IN V.A.T.S. IMMEDIATELY RESTORES 20 ACTION POINTS.' },
+                { name: 'HACKER', rank: 3, desc: 'YOU CAN BYPASS TERMINAL SECURITY UP TO THE HIGHEST LEVEL.' },
+                { name: 'SCROUNGER', rank: 2, desc: 'YOU FIND SIGNIFICANTLY MORE AMMUNITION IN CONTAINERS.' }
+            ],
+            GENERAL: [
+                { label: 'KILLS', val: '1,402' },
+                { label: 'LOCATIONS DISCOVERED', val: '84' },
+                { label: 'LOCKS PICKED', val: '212' },
+                { label: 'HACKING SUCCESSES', val: '95' },
+                { label: 'KARMA', val: 'VERY GOOD (SENTINEL)' }
+            ]
+        }
+    },
+    INV: {
+        tabs: ['WEAPONS', 'APPAREL', 'AID', 'MISC', 'AMMO'],
+        content: {
+            WEAPONS: [
+                { name: '10MM PISTOL', dam: 18, wt: 3, val: 250, desc: 'A RELIABLE SEMI-AUTO HANDGUN. USES 10MM ROUNDS.', ammo: '10MM' },
+                { name: 'COMBAT RIFLE', dam: 42, wt: 12, val: 800, desc: 'VERSATILE RIFLE FOR MEDIUM RANGE ENGAGEMENTS.', ammo: '.45 CAL' },
+                { name: 'SUPER SLEDGE', dam: 75, wt: 20, val: 1200, desc: 'A KINETIC POWER HAMMER CAPABLE OF CRUSHING POWER ARMOR.', ammo: 'N/A' },
+                { name: 'FRAG GRENADE', dam: 150, wt: 0.5, val: 50, desc: 'STANDARD FRAGMENTATION EXPLOSIVE.', ammo: 'QTY: 12' },
+                { name: 'LASER RIFLE', dam: 35, wt: 8, val: 1100, desc: 'AER9 MODEL. USES MICROFUSION CELLS.', ammo: 'MF CELL' }
+            ],
+            APPAREL: [
+                { name: 'VAULT 111 JUMPSUIT', dr: 5, wt: 2, desc: 'STANDARD ISSUE UNDER-ARMOR FOR VAULT RESIDENTS.' },
+                { name: 'LEATHER CHEST PIECE', dr: 15, wt: 8, desc: 'TREATED HIDE PROVIDING BASIC PROTECTION.' },
+                { name: 'COMBAT HELMET', dr: 10, wt: 4, desc: 'MILITARY-GRADE HEAD PROTECTION.' },
+                { name: 'WORN FEDORA', dr: 0, wt: 1, desc: '+1 LUCK. VERY STYLISH.' }
+            ],
+            AID: [
+                { name: 'STIMPAK', val: 'QTY: 24', desc: 'INSTANTLY RESTORES 30% OF MAX HP.' },
+                { name: 'RADAWAY', val: 'QTY: 8', desc: 'REMOVES 300 POINTS OF RADIATION.' },
+                { name: 'PURIFIED WATER', val: 'QTY: 15', desc: 'RESTORES A SMALL AMOUNT OF HP. NO RADS.' },
+                { name: 'JET', val: 'QTY: 2', desc: 'SLOWS DOWN TIME FOR 10 SECONDS. HIGHLY ADDICTIVE.' }
+            ],
+            MISC: [
+                { name: 'BOBBY PIN', val: 'QTY: 42' },
+                { name: 'BOTTLECAP', val: 'QTY: 4,820' },
+                { name: 'OVERSEER LOG #1', val: 'HOLOTAPE' }
+            ],
+            AMMO: [
+                { name: '10MM ROUND', val: '1,200' },
+                { name: '.45 CALIBER', val: '450' },
+                { name: 'MF CELL', val: '180' },
+                { name: 'MINI NUKE', val: '2' }
+            ]
+        }
+    },
+    DATA: {
+        tabs: ['QUESTS', 'MAP', 'RADIO'],
+        content: {
+            QUESTS: [
+                { name: 'OUT OF TIME', status: 'ACTIVE', desc: 'SEARCH FOR YOUR SON IN THE WASTELAND.' },
+                { name: 'THE FIRST STEP', status: 'ACTIVE', desc: 'ASSIST THE MINUTEMEN AT CORVEGA ASSEMBLY PLANT.' },
+                { name: 'ROAD TO FREEDOM', status: 'ACTIVE', desc: 'FOLLOW THE FREEDOM TRAIL.' },
+                { name: 'DIAMOND CITY BLUES', status: 'COMPLETED', desc: 'INVESTIGATE THE DRUG DEAL AT THE DOCKS.' }
+            ],
+            MAP: {
+                loc: 'COMMONWEALTH',
+                pos: 'DIAMOND CITY MARKET'
+            },
+            RADIO: [
+                { name: 'DIAMOND CITY RADIO', status: 'ON', song: 'TRAIN TRAIN' },
+                { name: 'CLASSICAL RADIO', status: 'OFF' },
+                { name: 'FREEDOM RADIO', status: 'OFF' },
+                { name: 'DISTRESS SIGNAL', status: 'OFF' }
+            ]
+        }
+    }
+};
 
-    // Deep data structures for a rich UI
-    const views = {
-        CND: `
-            <div class="status-layout">
-                <div class="vault-boy-container">
-                    <div class="limb-label limb-hd">HD</div>
-                    <div class="limb-label limb-la">LA</div>
-                    <div class="limb-label limb-ra">RA</div>
-                    <div class="limb-label limb-ll">LL</div>
-                    <div class="limb-label limb-rl">RL</div>
-                    <svg width="140" height="180" viewBox="0 0 100 120">
-                        <path d="M50 10 C60 10 65 20 65 30 C65 40 60 45 50 45 C40 45 35 40 35 30 C35 20 40 10 50 10" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
-                        <path d="M50 45 L50 85 M50 50 L25 75 M50 50 L75 75 M50 85 L35 115 M50 85 L65 115" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
-                    </svg>
-                </div>
-                <div class="stat-sidebar">
-                    <div class="stat-row">
-                        <div class="bar-label"><span>GUNS</span><span>75</span></div>
-                        <div class="bar-outer"><div class="bar-inner" style="width: 75%"></div></div>
-                    </div>
-                    <div class="stat-row">
-                        <div class="bar-label"><span>ENERGY</span><span>42</span></div>
-                        <div class="bar-outer"><div class="bar-inner" style="width: 42%"></div></div>
-                    </div>
-                    <div class="stat-row">
-                        <div class="bar-label"><span>RADS</span><span>12</span></div>
-                        <div class="bar-outer"><div class="bar-inner" style="width: 12%"></div></div>
-                    </div>
-                </div>
-            </div>
-        `,
-        SPECIAL: `
-            <div class="list-view">
-                <div class="list-item"><span>STRENGTH</span><span>7</span></div>
-                <div class="list-item"><span>PERCEPTION</span><span>6</span></div>
-                <div class="list-item"><span>ENDURANCE</span><span>8</span></div>
-                <div class="list-item"><span>CHARISMA</span><span>4</span></div>
-                <div class="list-item"><span>INTELLIGENCE</span><span>9</span></div>
-                <div class="list-item"><span>AGILITY</span><span>7</span></div>
-                <div class="list-item"><span>LUCK</span><span>5</span></div>
-                <div class="details-pane">
-                    STRENGTH IS A MEASURE OF YOUR RAW PHYSICAL POWER. IT AFFECTS HOW MUCH YOU CAN CARRY, AND THE DAMAGE OF ALL MELEE ATTACKS.
-                </div>
-            </div>
-        `,
-        PERKS: `
-            <div class="list-view">
-                <div class="list-item selected"><span>BLOODY MESS</span><span>RANK 1</span></div>
-                <div class="list-item"><span>TOUGHNESS</span><span>RANK 2</span></div>
-                <div class="list-item"><span>COMMANDO</span><span>RANK 1</span></div>
-                <div class="list-item"><span>HACKER</span><span>RANK 3</span></div>
-                <div class="details-pane">
-                    BLOODY MESS: +5% OVERALL DAMAGE. CHARACTERS AND CREATURES YOU KILL WILL OFTEN EXPLODE INTO A RED, PASTY MESS.
-                </div>
-            </div>
-        `,
-        WEAPONS: `
-            <div class="list-view">
-                <div class="list-item selected"><span>10MM PISTOL</span><span>12 LBS</span></div>
-                <div class="list-item"><span>COMBAT RIFLE</span><span>18 LBS</span></div>
-                <div class="list-item"><span>FRAG GRENADE (6)</span><span>3 LBS</span></div>
-                <div class="list-item"><span>SUPER SLEDGE</span><span>20 LBS</span></div>
-                <div class="details-pane">
-                    DAM: 18 | AMMO: 10MM | WT: 12<br>
-                    A STURDY, RELIABLE HANDGUN. POPULAR WITH SECURITY FORCES.
-                </div>
-            </div>
-        `,
-        APPAREL: `
-            <div class="list-view">
-                <div class="list-item selected"><span>VAULT 101 JUMPSUIT</span><span>2 LBS</span></div>
-                <div class="list-item"><span>COMBAT ARMOR CHEST</span><span>15 LBS</span></div>
-                <div class="list-item"><span>FORMAL HAT</span><span>1 LB</span></div>
-                <div class="details-pane">
-                    DR: 5 | RAD RESIST: 10<br>
-                    STANDARD ISSUE CLOTHING FOR VAULT RESIDENTS.
-                </div>
-            </div>
-        `,
-        AID: `
-            <div class="list-view">
-                <div class="list-item"><span>STIMPAK (14)</span></div>
-                <div class="list-item"><span>RADAWAY (4)</span></div>
-                <div class="list-item"><span>PURIFIED WATER (8)</span></div>
-                <div class="list-item"><span>MUTFRUIT (2)</span></div>
-            </div>
-        `,
-        QUESTS: `
-            <div class="list-view">
-                <div class="list-item selected"><span>THE POWER OF THE ATOM</span></div>
-                <p style="font-size: 0.75rem; margin-left: 10px; opacity: 0.7;">- DISARM THE BOMB IN MEGATON</p>
-                <div class="list-item"><span>FOLLOWING IN HIS FOOTSTEPS</span></div>
-                <p style="font-size: 0.75rem; margin-left: 10px; opacity: 0.7;">- SEARCH FOR CLUES IN GALAXY NEWS RADIO</p>
-                <div class="list-item"><span>WASTELAND SURVIVAL GUIDE</span></div>
-                <p style="font-size: 0.75rem; margin-left: 10px; opacity: 0.7;">- TRAVEL TO SUPER-DUPER MART</p>
-            </div>
-        `,
-        MAP: `
-            <div style="width:100%; height:180px; border:1px solid var(--pip-green); margin-top:20px; display:flex; align-items:center; justify-content:center; position:relative; background: radial-gradient(circle, var(--pip-green-dim) 0%, transparent 70%);">
-                <span style="font-size: 0.7rem; position:absolute; top:10px; left:10px;">WORLD MAP</span>
-                <div style="width:10px; height:10px; background:var(--pip-green); border-radius:50%; box-shadow: 0 0 10px var(--pip-green);"></div>
-                <span style="font-size:0.8rem; margin-top:30px;">YOU ARE HERE: MEGATON</span>
-            </div>
-        `,
-        RADIO: `
-            <div class="list-view">
-                <div class="list-item selected"><span>GALAXY NEWS RADIO</span></div>
-                <div class="list-item"><span>ENCLAVE RADIO</span></div>
-                <div class="list-item"><span>VAULT 101 SIGNAL</span></div>
-                <div class="details-pane" style="text-align:center;">
-                    NOW PLAYING: "I DON'T WANT TO SET THE WORLD ON FIRE"
-                </div>
-            </div>
-        `
-    };
+const ui = {
+    currentTab: 'STAT',
+    currentSub: 'CND',
+    isPowerOn: true,
 
-    function setMainTab(tab, el) {
-        if (!isPoweredOn) return;
-        currentMainTab = tab;
+    init() {
+        this.renderSubNav();
+        this.renderContent();
+        this.startGlitches();
+        window.addEventListener('resize', this.autoScale);
+        this.autoScale();
+    },
+
+    autoScale() {
+        const chassis = document.getElementById('pip-chassis');
+        const scale = Math.min(window.innerWidth / 920, window.innerHeight / 700);
+        chassis.style.transform = scale < 1 ? `scale(${scale})` : `scale(1)`;
+    },
+
+    togglePower() {
+        this.isPowerOn = !this.isPowerOn;
+        document.getElementById('pip-chassis').classList.toggle('off', !this.isPowerOn);
+        if (this.isPowerOn) this.triggerFlicker(300);
+    },
+
+    changeMainTab(tab, el) {
+        if (!this.isPowerOn) return;
+        this.currentTab = tab;
+        this.currentSub = ENGINE_DATA[tab].tabs[0];
+        
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-        renderSubNav(tab);
-        loadContent(subTabs[tab][0]);
-    }
 
-    function renderSubNav(tab) {
-        subNavDiv.innerHTML = '';
-        subTabs[tab].forEach((sub, idx) => {
+        this.triggerFlicker(100);
+        this.renderSubNav();
+        this.renderContent();
+    },
+
+    changeSubTab(sub, el) {
+        if (!this.isPowerOn) return;
+        this.currentSub = sub;
+        document.querySelectorAll('.sub-tab').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        this.renderContent();
+    },
+
+    renderSubNav() {
+        const container = document.getElementById('sub-nav');
+        container.innerHTML = '';
+        ENGINE_DATA[this.currentTab].tabs.forEach(tab => {
             const div = document.createElement('div');
-            div.className = `sub-item ${idx === 0 ? 'active' : ''}`;
-            div.innerText = sub;
-            div.onclick = (e) => {
-                document.querySelectorAll('.sub-item').forEach(si => si.classList.remove('active'));
-                div.classList.add('active');
-                loadContent(sub);
-            };
-            subNavDiv.appendChild(div);
+            div.className = `sub-tab ${tab === this.currentSub ? 'active' : ''}`;
+            div.innerText = tab;
+            div.onclick = () => this.changeSubTab(tab, div);
+            container.appendChild(div);
         });
-    }
+    },
 
-    function loadContent(subTab) {
-        contentDiv.innerHTML = views[subTab] || `<div style="margin-top:50px; text-align:center; opacity:0.3;">[ SYSTEM OFFLINE: ${subTab} ]</div>`;
-        screen.classList.add('screen-flicker');
-        setTimeout(() => screen.classList.remove('screen-flicker'), 120);
-    }
+    renderContent() {
+        const viewport = document.getElementById('viewport');
+        viewport.innerHTML = '';
+        const data = ENGINE_DATA[this.currentTab].content[this.currentSub];
 
-    function togglePower() {
-        isPoweredOn = !isPoweredOn;
-        pipboy.classList.toggle('off');
-        if(isPoweredOn) {
-            setMainTab('STAT', document.querySelector('.nav-item'));
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tab-transition';
+
+        // --- SPECIALIZED RENDERERS ---
+        if (this.currentSub === 'CND') {
+            wrapper.innerHTML = this.getConditionHTML(data);
+        } 
+        else if (Array.isArray(data)) {
+            wrapper.innerHTML = this.getListHTML(data);
         }
-    }
-
-    function triggerRandomFlicker() {
-        if (!isPoweredOn) {
-            setTimeout(triggerRandomFlicker, 2000);
-            return;
+        else if (this.currentSub === 'MAP') {
+            wrapper.innerHTML = this.getMapHTML(data);
         }
-        if (Math.random() > 0.94) {
-            screen.classList.add('screen-flicker');
-            setTimeout(() => screen.classList.remove('screen-flicker'), Math.random() * 100 + 50);
+
+        viewport.appendChild(wrapper);
+        this.initListEvents();
+    },
+
+    getConditionHTML(data) {
+        return `
+            <div class="condition-layout">
+                <div class="vault-boy-visual">
+                    <div class="limb-indicator limb-head">CND ${data.limbs.head}%</div>
+                    <div class="limb-indicator limb-la">CND ${data.limbs.la}%</div>
+                    <div class="limb-indicator limb-ra">CND ${data.limbs.ra}%</div>
+                    <div class="limb-indicator limb-ll">CND ${data.limbs.ll}%</div>
+                    <div class="limb-indicator limb-rl">CND ${data.limbs.rl}%</div>
+                    <svg viewBox="0 0 100 120" width="160">
+                         <path d="M50 10 C60 10 65 20 65 30 C65 40 60 45 50 45 C40 45 35 40 35 30 C35 20 40 10 50 10" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
+                         <path d="M50 45 L50 85 M50 50 L25 75 M50 50 L75 75 M50 85 L35 115 M50 85 L65 115" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="stat-bars">
+                    ${data.stats.map(s => `
+                        <div class="progress-bar-wrap">
+                            <div class="pb-label"><span>${s.label}</span><span>${s.val}</span></div>
+                            <div class="pb-outer"><div class="pb-inner" style="width: ${s.val}%"></div></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    getListHTML(items) {
+        const isRadio = this.currentSub === 'RADIO';
+        return `
+            <div class="list-container">
+                <div class="scroll-list">
+                    ${items.map((item, idx) => `
+                        <div class="list-entry ${idx === 0 ? 'selected' : ''}" data-idx="${idx}">
+                            <span>${item.name || item.label}</span>
+                            <span>${item.val || item.status || (item.rank ? 'RANK '+item.rank : '')}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="info-panel">
+                    <div class="detail-box" id="detail-pane">
+                        ${this.getDetailContent(items[0])}
+                    </div>
+                    ${isRadio ? this.getVisualizerHTML() : ''}
+                </div>
+            </div>
+        `;
+    },
+
+    getDetailContent(item) {
+        if (!item) return "NO DATA SELECTED";
+        if (this.currentSub === 'RADIO') return `FREQUENCY: 98.4 MHZ<br>CURRENTLY PLAYING:<br>${item.song || 'SIGNAL LOST...'}`;
+        if (this.currentSub === 'WEAPONS') return `DAM: ${item.dam} | WT: ${item.wt} | VAL: ${item.val}<br><br>${item.desc}`;
+        if (this.currentSub === 'QUESTS') return `STATUS: ${item.status}<br><br>${item.desc}`;
+        return item.desc || "SYSTEM LOG: PREVIEW NOT AVAILABLE.";
+    },
+
+    getMapHTML(data) {
+        return `
+            <div style="height:280px; border:2px solid var(--pip-green); position:relative; background: radial-gradient(circle at center, #152515 0%, #050a05 100%);">
+                <div style="position:absolute; top:45%; left:48%; width:12px; height:12px; background:white; border-radius:50%; box-shadow: 0 0 15px white; animation: blink 1s infinite;"></div>
+                <div style="position:absolute; bottom:10px; left:10px; font-size:0.7rem;">WORLD: ${data.loc}<br>ZONE: ${data.pos}</div>
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0.1; background-image: 
+                    linear-gradient(var(--pip-green-dim) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--pip-green-dim) 1px, transparent 1px);
+                    background-size: 20px 20px;"></div>
+            </div>
+        `;
+    },
+
+    getVisualizerHTML() {
+        let bars = '';
+        for(let i=0; i<20; i++) {
+            bars += `<div class="v-bar" style="animation-delay: ${Math.random()}s"></div>`;
         }
-        setTimeout(triggerRandomFlicker, Math.random() * 5000 + 1000);
-    }
+        return `<div class="visualizer">${bars}</div>`;
+    },
 
-    // Dynamic scale for window resizing
-    function handleResize() {
-        const scale = Math.min(window.innerWidth / 850, window.innerHeight / 650);
-        pipboy.style.transform = scale < 1 ? `scale(${scale})` : `scale(1)`;
-    }
+    initListEvents() {
+        const items = document.querySelectorAll('.list-entry');
+        const detailPane = document.getElementById('detail-pane');
+        const data = ENGINE_DATA[this.currentTab].content[this.currentSub];
 
-    // Initialize UI
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    renderSubNav('STAT');
-    loadContent('CND');
-    triggerRandomFlicker();
+        items.forEach(item => {
+            item.onclick = () => {
+                items.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                const idx = item.getAttribute('data-idx');
+                detailPane.innerHTML = this.getDetailContent(data[idx]);
+            };
+        });
+    },
+
+    triggerFlicker(dur) {
+        const screen = document.getElementById('crt-screen');
+        screen.classList.add('flicker-heavy');
+        setTimeout(() => screen.classList.remove('flicker-heavy'), dur);
+    },
+
+    startGlitches() {
+        setInterval(() => {
+            if (this.isPowerOn && Math.random() > 0.95) {
+                this.triggerFlicker(50 + Math.random() * 150);
+            }
+        }, 2000);
+    }
+};
+
+// Start System
+window.onload = () => ui.init();
+
 </script>
 
 </body>
