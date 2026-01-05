@@ -43,12 +43,14 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            /* Placeholder for the physical bezel image */
-            background-image: url('https://i.imgur.com/G4VzF4M.png'); 
+            /* USING YOUR LOCAL ASSETS */
+            background-image: url('assets/screen/monitorborder.png'); 
+            transition: background-image 0.2s;
         }
 
         .pipboy-module.off {
-            filter: brightness(0.1);
+            background-image: url('assets/screen/monitorborder-off.png');
+            filter: brightness(0.2);
         }
 
         /* --- CRT SCREEN CONTAINER --- */
@@ -58,8 +60,9 @@
             left: 110px;
             width: 670px;
             height: 440px;
-            background-color: #050a05;
-            background-image: radial-gradient(circle, #1a2e1a 0%, #050a05 100%);
+            /* USING YOUR LOCAL BG */
+            background-image: url('assets/screen/bg.png');
+            background-size: cover;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -70,6 +73,10 @@
             transform: var(--crt-curve);
             box-shadow: inset 0 0 60px rgba(0,0,0,1), 0 0 20px rgba(26, 255, 128, 0.1);
             border: 2px solid #152515;
+        }
+
+        .off .screen-area {
+            display: none;
         }
 
         /* Scanline Overlay */
@@ -133,6 +140,7 @@
             letter-spacing: 4px;
             opacity: 0.4;
             transition: 0.1s;
+            user-select: none;
         }
 
         .nav-item:hover {
@@ -245,6 +253,7 @@
             font-size: 0.85rem;
             line-height: 1.4;
             flex-grow: 1;
+            overflow-y: auto;
         }
 
         /* Progress Bars */
@@ -271,7 +280,7 @@
             box-shadow: 0 0 10px var(--pip-green);
         }
 
-        /* Special Layout: Status/Condition */
+        /* Condition Layout */
         .condition-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -302,7 +311,7 @@
         .limb-ll { bottom: 5%; left: 25%; }
         .limb-rl { bottom: 5%; right: 25%; }
 
-        /* --- ANIMATIONS & EFFECTS --- */
+        /* Animations */
         @keyframes micro-flicker {
             0% { opacity: 0.98; filter: brightness(1); }
             50% { opacity: 1; filter: brightness(1.05); }
@@ -328,7 +337,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Scrollbar Styling */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--pip-green); }
@@ -341,10 +349,8 @@
             height: 70px;
             cursor: pointer;
             z-index: 100;
-            border-radius: 50%;
         }
 
-        /* Radio Visualizer Bars */
         .visualizer {
             display: flex;
             align-items: flex-end;
@@ -361,6 +367,11 @@
             from { height: 5px; }
             to { height: 100%; }
         }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
     </style>
 </head>
 <body>
@@ -375,35 +386,29 @@
                 <div class="nav-item" onclick="ui.changeMainTab('INV', this)">INV</div>
                 <div class="nav-item" onclick="ui.changeMainTab('DATA', this)">DATA</div>
             </nav>
-            <div class="sub-nav" id="sub-nav">
-                <!-- Sub tabs dynamic -->
-            </div>
+            <div class="sub-nav" id="sub-nav"></div>
         </header>
 
-        <main id="viewport">
-            <!-- Content dynamic -->
-        </main>
+        <main id="viewport"></main>
 
         <footer>
             <div class="footer-stat-group">
-                <span id="f-hp">HP 240/240</span>
-                <span id="f-lvl">LEVEL 32</span>
+                <span id="f-hp">HP 285/300</span>
+                <span id="f-lvl">LEVEL 42</span>
             </div>
             <div class="footer-stat-group">
-                <span id="f-ap">AP 85/85</span>
-                <span style="color: #ff4444; animation: blink 1.5s infinite;">LOW BATTERY</span>
+                <span id="f-ap">AP 110/110</span>
+                <span style="color: #ffaa00; animation: blink 2s infinite;">CORE STABLE</span>
             </div>
         </footer>
     </div>
 
-    <!-- Hidden Interaction Layer -->
     <div class="btn-power" onclick="ui.togglePower()"></div>
 </div>
 
 <script>
 /**
- * PIP-BOY 3000 CORE LOGIC
- * High-Density Data & Interaction System
+ * PIP-BOY 3000 CORE LOGIC - HIGH DENSITY EDITION
  */
 
 const ENGINE_DATA = {
@@ -412,37 +417,58 @@ const ENGINE_DATA = {
         content: {
             CND: {
                 type: 'status',
-                limbs: { head: 100, la: 85, ra: 100, ll: 95, rl: 100 },
+                limbs: { head: 100, la: 92, ra: 100, ll: 88, rl: 100 },
                 stats: [
-                    { label: 'GUNS', val: 100 },
-                    { label: 'ENERGY WEAP.', val: 45 },
-                    { label: 'EXPLOSIVES', val: 60 },
-                    { label: 'MELEE', val: 30 }
+                    { label: 'SMALL GUNS', val: 95 },
+                    { label: 'BIG GUNS', val: 40 },
+                    { label: 'ENERGY WEAP.', val: 85 },
+                    { label: 'EXPLOSIVES', val: 55 },
+                    { label: 'MELEE WEAP.', val: 35 },
+                    { label: 'UNARMED', val: 25 },
+                    { label: 'SNEAK', val: 100 },
+                    { label: 'LOCKPICK', val: 80 }
                 ]
             },
             SPECIAL: [
-                { id: 'S', name: 'STRENGTH', val: 8, desc: 'A MEASURE OF YOUR RAW PHYSICAL POWER. IT AFFECTS CARRY WEIGHT AND MELEE DAMAGE.' },
-                { id: 'P', name: 'PERCEPTION', val: 6, desc: 'AFFECTS WEAPON ACCURACY IN V.A.T.S. AND DETECTION OF ENEMIES ON COMPASS.' },
-                { id: 'E', name: 'ENDURANCE', val: 9, desc: 'DETERMINES TOTAL HIT POINTS, RESISTANCE TO POISON/RADIATION, AND SPRINTING DRAIN.' },
-                { id: 'C', name: 'CHARISMA', val: 5, desc: 'INFLUENCES SUCCESS IN DIALOGUE CHALLENGES AND PRICES AT TRADERS.' },
+                { id: 'S', name: 'STRENGTH', val: 7, desc: 'A MEASURE OF YOUR RAW PHYSICAL POWER. IT AFFECTS CARRY WEIGHT AND MELEE DAMAGE.' },
+                { id: 'P', name: 'PERCEPTION', val: 8, desc: 'AFFECTS WEAPON ACCURACY IN V.A.T.S. AND DETECTION OF ENEMIES ON COMPASS.' },
+                { id: 'E', name: 'ENDURANCE', val: 6, desc: 'DETERMINES TOTAL HIT POINTS, RESISTANCE TO ENVIRONMENTAL HAZARDS, AND STAMINA.' },
+                { id: 'C', name: 'CHARISMA', val: 9, desc: 'INFLUENCES SUCCESS IN DIALOGUE CHALLENGES AND PRICES AT TRADERS.' },
                 { id: 'I', name: 'INTELLIGENCE', val: 10, desc: 'DETERMINES THE NUMBER OF SKILL POINTS EARNED PER LEVEL UP.' },
                 { id: 'A', name: 'AGILITY', val: 7, desc: 'DETERMINES THE TOTAL NUMBER OF ACTION POINTS AVAILABLE FOR V.A.T.S.' },
                 { id: 'L', name: 'LUCK', val: 6, desc: 'RAISES THE CHANCE OF CRITICAL HITS AND IMPROVES CHANCES IN ALL GAMES OF CHANCE.' }
             ],
             PERKS: [
-                { name: 'BLOODY MESS', rank: 1, desc: 'YOU DEAL +5% OVERALL DAMAGE. ENEMIES OFTEN EXPLODE INTO RED PASTE UPON DEATH.' },
-                { name: 'TOUGHNESS', rank: 2, desc: 'YOUR OVERALL DAMAGE RESISTANCE IS INCREASED BY 10%.' },
-                { name: 'COMMANDO', rank: 1, desc: 'ACCURACY WITH TWO-HANDED AUTOMATIC WEAPONS IS INCREASED BY 15%.' },
-                { name: 'GRIM REAPER SPRINT', rank: 1, desc: 'A KILL IN V.A.T.S. IMMEDIATELY RESTORES 20 ACTION POINTS.' },
+                { name: 'ACTION BOY', rank: 2, desc: 'YOUR ACTION POINTS REGENERATE 50% FASTER THAN NORMAL.' },
+                { name: 'ANIMAL FRIEND', rank: 1, desc: 'ANIMALS WILL NOT ATTACK YOU UNLESS PROVOKED.' },
+                { name: 'AWARENESS', rank: 1, desc: 'VIEW SPECIFIC DAMAGE RESISTANCES OF TARGETS IN V.A.T.S.' },
+                { name: 'BETTER CRITICALS', rank: 1, desc: 'CRITICAL HITS CAUSE 50% MORE DAMAGE.' },
+                { name: 'BLOODY MESS', rank: 1, desc: 'YOU DEAL +5% OVERALL DAMAGE. TARGETS MAY EXPLODE SPECTACULARLY.' },
+                { name: 'COMMANDO', rank: 2, desc: 'ACCURACY WITH RIFLES IS INCREASED BY 30%.' },
+                { name: 'CONCENTRATED FIRE', rank: 1, desc: 'V.A.T.S. ACCURACY INCREASES WITH EVERY SUBSEQUENT HIT ON THE SAME BODY PART.' },
+                { name: 'GRIM REAPER SPRINT', rank: 1, desc: 'A KILL IN V.A.T.S. IMMEDIATELY RESTORES ACTION POINTS.' },
                 { name: 'HACKER', rank: 3, desc: 'YOU CAN BYPASS TERMINAL SECURITY UP TO THE HIGHEST LEVEL.' },
-                { name: 'SCROUNGER', rank: 2, desc: 'YOU FIND SIGNIFICANTLY MORE AMMUNITION IN CONTAINERS.' }
+                { name: 'INFILTRATOR', rank: 1, desc: 'IF A LOCK IS BROKEN, YOU CAN ATTEMPT TO PICK IT ONE MORE TIME.' },
+                { name: 'LIFE GIVER', rank: 3, desc: 'YOUR MAXIMUM HIT POINTS ARE INCREASED BY 60.' },
+                { name: 'MYSTERIOUS STRANGER', rank: 1, desc: 'A HELPFUL STRANGER SOMETIMES APPEARS IN V.A.T.S. TO FINISH OFF FOES.' },
+                { name: 'NIGHT PERSON', rank: 1, desc: 'GAIN +2 INTELLIGENCE AND PERCEPTION BETWEEN 6:00 PM AND 6:00 AM.' },
+                { name: 'ROBOTICS EXPERT', rank: 2, desc: 'DEAL MORE DAMAGE TO ROBOTS AND CAN SHUT THEM DOWN IF UNDETECTED.' },
+                { name: 'SCIENCE!', rank: 4, desc: 'ACCESS TO ADVANCED TECHNOLOGY MODIFICATIONS.' },
+                { name: 'SCROUNGER', rank: 2, desc: 'YOU FIND SIGNIFICANTLY MORE AMMUNITION IN CONTAINERS.' },
+                { name: 'SNEAK', rank: 5, desc: 'YOU ARE 50% HARDER TO DETECT AND NO LONGER TRIGGER FLOOR TRAPS.' },
+                { name: 'TOUGHNESS', rank: 3, desc: 'YOUR OVERALL DAMAGE RESISTANCE IS INCREASED BY 15%.' }
             ],
             GENERAL: [
-                { label: 'KILLS', val: '1,402' },
-                { label: 'LOCATIONS DISCOVERED', val: '84' },
-                { label: 'LOCKS PICKED', val: '212' },
-                { label: 'HACKING SUCCESSES', val: '95' },
-                { label: 'KARMA', val: 'VERY GOOD (SENTINEL)' }
+                { label: 'KILLS', val: '2,814' },
+                { label: 'LOCATIONS DISCOVERED', val: '142' },
+                { label: 'LOCKS PICKED', val: '315' },
+                { label: 'HACKING SUCCESSES', val: '124' },
+                { label: 'QUESTS COMPLETED', val: '58' },
+                { label: 'SPEECH SUCCESSES', val: '45' },
+                { label: 'STOLEN ITEMS', val: '12' },
+                { label: 'KARMA', val: 'VERY GOOD (SENTINEL)' },
+                { label: 'CAPS FOUND', val: '15,402' },
+                { label: 'STIMPAKS USED', val: '412' }
             ]
         }
     },
@@ -450,34 +476,62 @@ const ENGINE_DATA = {
         tabs: ['WEAPONS', 'APPAREL', 'AID', 'MISC', 'AMMO'],
         content: {
             WEAPONS: [
-                { name: '10MM PISTOL', dam: 18, wt: 3, val: 250, desc: 'A RELIABLE SEMI-AUTO HANDGUN. USES 10MM ROUNDS.', ammo: '10MM' },
-                { name: 'COMBAT RIFLE', dam: 42, wt: 12, val: 800, desc: 'VERSATILE RIFLE FOR MEDIUM RANGE ENGAGEMENTS.', ammo: '.45 CAL' },
-                { name: 'SUPER SLEDGE', dam: 75, wt: 20, val: 1200, desc: 'A KINETIC POWER HAMMER CAPABLE OF CRUSHING POWER ARMOR.', ammo: 'N/A' },
-                { name: 'FRAG GRENADE', dam: 150, wt: 0.5, val: 50, desc: 'STANDARD FRAGMENTATION EXPLOSIVE.', ammo: 'QTY: 12' },
-                { name: 'LASER RIFLE', dam: 35, wt: 8, val: 1100, desc: 'AER9 MODEL. USES MICROFUSION CELLS.', ammo: 'MF CELL' }
+                { name: '10MM PISTOL', dam: 22, wt: 3, val: 350, desc: 'RELIABLE HANDGUN WITH CUSTOM COMPENSATOR.', ammo: '10MM' },
+                { name: 'ASSAULT RIFLE', dam: 48, wt: 14, val: 950, desc: 'FULLY AUTOMATIC 5.56MM RIFLE.', ammo: '5.56MM' },
+                { name: 'COMBAT SHOTGUN', dam: 65, wt: 11, val: 720, desc: 'DEVASTATING AT CLOSE RANGE.', ammo: 'SHELLS' },
+                { name: 'GAUSS RIFLE', dam: 110, wt: 16, val: 2400, desc: 'HIGH-TECH ELECTROMAGNETIC PROJECTILE WEAPON.', ammo: '2MM EC' },
+                { name: 'HUNTING RIFLE', dam: 38, wt: 10, val: 400, desc: 'BOLT-ACTION PRECISION RIFLE.', ammo: '.308' },
+                { name: 'LASER PISTOL', dam: 28, wt: 4, val: 650, desc: 'INSTITUTE MODEL WITH UPGRADED CAPACITOR.', ammo: 'FC' },
+                { name: 'LASER RIFLE', dam: 52, wt: 9, val: 1400, desc: 'AER9 MODEL WITH SNIPER BARREL.', ammo: 'MF CELL' },
+                { name: 'MINIGUN', dam: 12, wt: 28, val: 1800, desc: 'RAPID FIRE HEAVY WEAPON.', ammo: '5MM' },
+                { name: 'PLASMA RIFLE', dam: 74, wt: 12, val: 2100, desc: 'PROJECTS BOLTS OF SUPERHEATED PLASMA.', ammo: 'CART.' },
+                { name: 'SUPER SLEDGE', dam: 85, wt: 20, val: 1500, desc: 'POWERED MELEE WEAPON.', ammo: 'N/A' }
             ],
             APPAREL: [
-                { name: 'VAULT 111 JUMPSUIT', dr: 5, wt: 2, desc: 'STANDARD ISSUE UNDER-ARMOR FOR VAULT RESIDENTS.' },
-                { name: 'LEATHER CHEST PIECE', dr: 15, wt: 8, desc: 'TREATED HIDE PROVIDING BASIC PROTECTION.' },
-                { name: 'COMBAT HELMET', dr: 10, wt: 4, desc: 'MILITARY-GRADE HEAD PROTECTION.' },
-                { name: 'WORN FEDORA', dr: 0, wt: 1, desc: '+1 LUCK. VERY STYLISH.' }
+                { name: 'VAULT 111 JUMPSUIT', dr: 8, wt: 2, desc: 'INSULATED LINING UPGRADE.' },
+                { name: 'COMBAT ARMOR CHEST', dr: 22, wt: 15, desc: 'REINFORCED POLYMER PLATES.' },
+                { name: 'COMBAT ARMOR LEFT ARM', dr: 12, wt: 6, desc: 'STANDARD MILITARY ISSUE.' },
+                { name: 'COMBAT ARMOR RIGHT ARM', dr: 12, wt: 6, desc: 'STANDARD MILITARY ISSUE.' },
+                { name: 'COMBAT ARMOR LEFT LEG', dr: 12, wt: 6, desc: 'STANDARD MILITARY ISSUE.' },
+                { name: 'COMBAT ARMOR RIGHT LEG', dr: 12, wt: 6, desc: 'STANDARD MILITARY ISSUE.' },
+                { name: 'GAS MASK', dr: 2, wt: 3, desc: 'FILTERED BREATHING APPARATUS.' },
+                { name: 'MILITARY FATIGUES', dr: 5, wt: 4, desc: 'TOUGH CLOTH UNDER-ARMOR.' },
+                { name: 'WORN FEDORA', dr: 0, wt: 1, desc: '+1 LUCK.' }
             ],
             AID: [
-                { name: 'STIMPAK', val: 'QTY: 24', desc: 'INSTANTLY RESTORES 30% OF MAX HP.' },
-                { name: 'RADAWAY', val: 'QTY: 8', desc: 'REMOVES 300 POINTS OF RADIATION.' },
-                { name: 'PURIFIED WATER', val: 'QTY: 15', desc: 'RESTORES A SMALL AMOUNT OF HP. NO RADS.' },
-                { name: 'JET', val: 'QTY: 2', desc: 'SLOWS DOWN TIME FOR 10 SECONDS. HIGHLY ADDICTIVE.' }
+                { name: 'STIMPAK (32)', val: 'HEAL', desc: 'RESTORES 30% HP.' },
+                { name: 'RADAWAY (12)', val: 'RADS', desc: 'REMOVES 300 RADS.' },
+                { name: 'RAD-X (6)', val: 'RESIST', desc: 'INCREASES RAD RESISTANCE.' },
+                { name: 'PURIFIED WATER (14)', val: 'HYDRATE', desc: 'CLEAN WATER.' },
+                { name: 'INSTAMASH', val: 'FOOD', desc: 'PRE-WAR PROCESSED POTATOES.' },
+                { name: 'SALISBURY STEAK', val: 'FOOD', desc: 'PRE-WAR CANNED MEAT.' },
+                { name: 'NUKA-COLA (4)', val: 'ENERGY', desc: 'CLASSIC REFRESHMENT.' },
+                { name: 'NUKA-COLA QUANTUM', val: 'AP', desc: 'GLOWING BLUE SODA.' },
+                { name: 'BLOOD PACK', val: 'HEAL', desc: 'RESTORATIVE FLUID.' },
+                { name: 'MUTFruit (8)', val: 'FOOD', desc: 'MUTATED FRUIT.' }
             ],
             MISC: [
-                { name: 'BOBBY PIN', val: 'QTY: 42' },
-                { name: 'BOTTLECAP', val: 'QTY: 4,820' },
-                { name: 'OVERSEER LOG #1', val: 'HOLOTAPE' }
+                { name: 'BOBBY PIN (58)', val: 'TOOLS' },
+                { name: 'BOTTLECAP (15402)', val: 'CURRENCY' },
+                { name: 'OVERSEER LOG #1', val: 'TAPE' },
+                { name: 'OVERSEER LOG #2', val: 'TAPE' },
+                { name: 'STARCHY SCRAP', val: 'JUNK' },
+                { name: 'WONDERGLUE', val: 'JUNK' },
+                { name: 'DUCT TAPE', val: 'JUNK' },
+                { name: 'CAMERA', val: 'JUNK' },
+                { name: 'MILITARY GRADE CIRCUIT', val: 'JUNK' }
             ],
             AMMO: [
-                { name: '10MM ROUND', val: '1,200' },
+                { name: '10MM ROUND', val: '1,420' },
+                { name: '5.56MM ROUND', val: '860' },
                 { name: '.45 CALIBER', val: '450' },
-                { name: 'MF CELL', val: '180' },
-                { name: 'MINI NUKE', val: '2' }
+                { name: '.308 CALIBER', val: '120' },
+                { name: '5MM ROUND', val: '2,400' },
+                { name: 'SHOTGUN SHELL', val: '315' },
+                { name: 'MF CELL', val: '480' },
+                { name: 'PLASMA CART.', val: '195' },
+                { name: '2MM EC', val: '45' },
+                { name: 'FUSION CORE', val: '12' }
             ]
         }
     },
@@ -485,20 +539,23 @@ const ENGINE_DATA = {
         tabs: ['QUESTS', 'MAP', 'RADIO'],
         content: {
             QUESTS: [
-                { name: 'OUT OF TIME', status: 'ACTIVE', desc: 'SEARCH FOR YOUR SON IN THE WASTELAND.' },
-                { name: 'THE FIRST STEP', status: 'ACTIVE', desc: 'ASSIST THE MINUTEMEN AT CORVEGA ASSEMBLY PLANT.' },
-                { name: 'ROAD TO FREEDOM', status: 'ACTIVE', desc: 'FOLLOW THE FREEDOM TRAIL.' },
-                { name: 'DIAMOND CITY BLUES', status: 'COMPLETED', desc: 'INVESTIGATE THE DRUG DEAL AT THE DOCKS.' }
+                { name: 'THE BIG SEARCH', status: 'ACTIVE', desc: 'FIND THE MISSING SETTLERS NEAR THE COAST.' },
+                { name: 'TECH RECOVERY', status: 'ACTIVE', desc: 'RETRIEVE THE MISSING SENSOR MODULE FROM THE RUINS.' },
+                { name: 'OUT OF TIME', status: 'COMPLETED', desc: 'SEARCH FOR CLUES IN YOUR OLD HOME.' },
+                { name: 'A NEW DAWN', status: 'COMPLETED', desc: 'RE-ESTABLISH COMMUNICATIONS AT THE ARRAY.' },
+                { name: 'ROAD TO FREEDOM', status: 'ACTIVE', desc: 'FOLLOW THE BRICK PATH.' },
+                { name: 'THE FIRST STEP', status: 'COMPLETED', desc: 'HELP THE LOCAL SETTLEMENT.' },
+                { name: 'DIAMOND CITY BLUES', status: 'COMPLETED', desc: 'SOLVE THE DISPUTE AT THE BAR.' }
             ],
             MAP: {
-                loc: 'COMMONWEALTH',
-                pos: 'DIAMOND CITY MARKET'
+                loc: 'WASTELAND SECTOR 7',
+                pos: 'OUTPOST EPSILON'
             },
             RADIO: [
-                { name: 'DIAMOND CITY RADIO', status: 'ON', song: 'TRAIN TRAIN' },
-                { name: 'CLASSICAL RADIO', status: 'OFF' },
-                { name: 'FREEDOM RADIO', status: 'OFF' },
-                { name: 'DISTRESS SIGNAL', status: 'OFF' }
+                { name: 'CLASSIC TUNES', status: 'ON', song: 'BLUE MOON' },
+                { name: 'NEWS BROADCAST', status: 'OFF', song: 'REPORTS' },
+                { name: 'DISTRESS SIGNAL', status: 'OFF', song: 'STATIC' },
+                { name: 'VAULT BEACON', status: 'OFF', song: 'AUTOMATED' }
             ]
         }
     }
@@ -533,10 +590,8 @@ const ui = {
         if (!this.isPowerOn) return;
         this.currentTab = tab;
         this.currentSub = ENGINE_DATA[tab].tabs[0];
-        
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-
         this.triggerFlicker(100);
         this.renderSubNav();
         this.renderContent();
@@ -566,18 +621,14 @@ const ui = {
         const viewport = document.getElementById('viewport');
         viewport.innerHTML = '';
         const data = ENGINE_DATA[this.currentTab].content[this.currentSub];
-
         const wrapper = document.createElement('div');
         wrapper.className = 'tab-transition';
 
-        // --- SPECIALIZED RENDERERS ---
         if (this.currentSub === 'CND') {
             wrapper.innerHTML = this.getConditionHTML(data);
-        } 
-        else if (Array.isArray(data)) {
+        } else if (Array.isArray(data)) {
             wrapper.innerHTML = this.getListHTML(data);
-        }
-        else if (this.currentSub === 'MAP') {
+        } else if (this.currentSub === 'MAP') {
             wrapper.innerHTML = this.getMapHTML(data);
         }
 
@@ -599,7 +650,7 @@ const ui = {
                          <path d="M50 45 L50 85 M50 50 L25 75 M50 50 L75 75 M50 85 L35 115 M50 85 L65 115" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
                     </svg>
                 </div>
-                <div class="stat-bars">
+                <div class="stat-bars" style="overflow-y:auto; height:100%; padding-right:10px;">
                     ${data.stats.map(s => `
                         <div class="progress-bar-wrap">
                             <div class="pb-label"><span>${s.label}</span><span>${s.val}</span></div>
@@ -635,17 +686,18 @@ const ui = {
 
     getDetailContent(item) {
         if (!item) return "NO DATA SELECTED";
-        if (this.currentSub === 'RADIO') return `FREQUENCY: 98.4 MHZ<br>CURRENTLY PLAYING:<br>${item.song || 'SIGNAL LOST...'}`;
+        if (this.currentSub === 'RADIO') return `FREQUENCY: 101.4 MHZ<br>NOW PLAYING:<br>${item.song || 'SIGNAL LOST...'}`;
         if (this.currentSub === 'WEAPONS') return `DAM: ${item.dam} | WT: ${item.wt} | VAL: ${item.val}<br><br>${item.desc}`;
         if (this.currentSub === 'QUESTS') return `STATUS: ${item.status}<br><br>${item.desc}`;
-        return item.desc || "SYSTEM LOG: PREVIEW NOT AVAILABLE.";
+        if (this.currentSub === 'APPAREL') return `DR: ${item.dr} | WT: ${item.wt}<br><br>${item.desc}`;
+        return item.desc || "SYSTEM STATUS: LOGGING ACTIVE. PREVIEW NOT AVAILABLE FOR THIS TYPE.";
     },
 
     getMapHTML(data) {
         return `
             <div style="height:280px; border:2px solid var(--pip-green); position:relative; background: radial-gradient(circle at center, #152515 0%, #050a05 100%);">
-                <div style="position:absolute; top:45%; left:48%; width:12px; height:12px; background:white; border-radius:50%; box-shadow: 0 0 15px white; animation: blink 1s infinite;"></div>
-                <div style="position:absolute; bottom:10px; left:10px; font-size:0.7rem;">WORLD: ${data.loc}<br>ZONE: ${data.pos}</div>
+                <div style="position:absolute; top:35%; left:62%; width:12px; height:12px; background:white; border-radius:50%; box-shadow: 0 0 15px white; animation: blink 1s infinite;"></div>
+                <div style="position:absolute; bottom:10px; left:10px; font-size:0.7rem;">ZONE: ${data.pos}<br>SECTOR: ${data.loc}</div>
                 <div style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0.1; background-image: 
                     linear-gradient(var(--pip-green-dim) 1px, transparent 1px),
                     linear-gradient(90deg, var(--pip-green-dim) 1px, transparent 1px);
@@ -656,9 +708,7 @@ const ui = {
 
     getVisualizerHTML() {
         let bars = '';
-        for(let i=0; i<20; i++) {
-            bars += `<div class="v-bar" style="animation-delay: ${Math.random()}s"></div>`;
-        }
+        for(let i=0; i<20; i++) bars += `<div class="v-bar" style="animation-delay: ${Math.random()}s"></div>`;
         return `<div class="visualizer">${bars}</div>`;
     },
 
@@ -666,7 +716,6 @@ const ui = {
         const items = document.querySelectorAll('.list-entry');
         const detailPane = document.getElementById('detail-pane');
         const data = ENGINE_DATA[this.currentTab].content[this.currentSub];
-
         items.forEach(item => {
             item.onclick = () => {
                 items.forEach(i => i.classList.remove('selected'));
@@ -685,16 +734,12 @@ const ui = {
 
     startGlitches() {
         setInterval(() => {
-            if (this.isPowerOn && Math.random() > 0.95) {
-                this.triggerFlicker(50 + Math.random() * 150);
-            }
-        }, 2000);
+            if (this.isPowerOn && Math.random() > 0.96) this.triggerFlicker(80 + Math.random() * 120);
+        }, 3000);
     }
 };
 
-// Start System
 window.onload = () => ui.init();
-
 </script>
 
 </body>
