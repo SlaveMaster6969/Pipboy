@@ -3,514 +3,682 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pip-Boy 3000 - Professional Edition</title>
+    <title>Pip-Boy 3000 Mk IV - Ultimate Edition</title>
     <style>
+        /* PROFESSIONAL PIP-BOY 3000 STYLING 
+           Designed for High-Fidelity Retro-Futurism
+        */
         :root {
             --pip-green: #1aff80;
             --pip-green-dim: rgba(26, 255, 128, 0.15);
             --pip-green-med: rgba(26, 255, 128, 0.4);
-            --pip-glow: 0 0 12px rgba(26, 255, 128, 0.65);
-            --crt-curve: perspective(1200px) rotateX(2deg) rotateY(-1deg);
+            --pip-glow: 0 0 10px rgba(26, 255, 128, 0.7);
+            --pip-bg: #0b140e;
+            --crt-curve: perspective(1000px) rotateX(1deg) rotateY(-1deg);
+            --scanline-color: rgba(18, 16, 16, 0.2);
+            --border-metal: #2c2c2c;
         }
 
-        * { box-sizing: border-box; cursor: crosshair; user-select: none; }
+        @font-face {
+            font-family: 'PipboyFont';
+            src: local('Courier New'); /* Simulating monospaced terminals */
+        }
+
+        * { 
+            box-sizing: border-box;
+            cursor: crosshair;
+            user-select: none;
+        }
 
         body {
-            background-color: #000;
+            background-color: #050505;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'PipboyFont', 'Courier New', monospace;
             overflow: hidden;
             color: var(--pip-green);
             text-transform: uppercase;
         }
 
-        /* --- HARDWARE CHASSIS --- */
-        .pipboy-frame {
-            width: 950px;
-            height: 720px;
+        /* --- HARDWARE ENCLOSURE --- */
+        .chassis-outer {
+            width: 1000px;
+            height: 750px;
             position: relative;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-image: url('assets/screen/monitorborder.png');
-            transition: filter 0.5s ease;
+            background: #1a1a1a;
+            border-radius: 40px;
+            padding: 40px;
+            box-shadow: 
+                inset 0 0 50px #000,
+                0 30px 60px rgba(0,0,0,0.8),
+                0 0 10px #222;
+            border: 4px solid #333;
         }
 
-        .off .pipboy-frame {
-            background-image: url('assets/screen/monitorborder-off.png');
-            filter: brightness(0.3) contrast(1.2);
-        }
-
-        /* --- SCREEN AREA --- */
-        .screen-area {
+        /* SCREWS & HARDWARE DETAILS */
+        .screw {
             position: absolute;
-            top: 95px;
-            left: 115px;
-            width: 710px;
-            height: 465px;
-            background-image: url('assets/screen/bg.png');
-            background-size: cover;
-            overflow: hidden;
+            width: 20px; height: 20px;
+            background: #222;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+        .s-tl { top: 20px; left: 20px; }
+        .s-tr { top: 20px; right: 20px; }
+        .s-bl { bottom: 20px; left: 20px; }
+        .s-br { bottom: 20px; right: 20px; }
+
+        /* --- CRT SCREEN DISPLAY --- */
+        .screen-container {
+            width: 100%;
+            height: 100%;
+            background: #020502;
             border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 15px solid #222;
+            box-shadow: inset 0 0 100px #000;
             transform: var(--crt-curve);
-            display: flex;
-            flex-direction: column;
-            z-index: 1;
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
         }
 
-        .off .screen-area {
-            background-image: url('assets/screen/bg-off.png');
-        }
-
-        .crt-post-processing {
+        /* CRT Effects Layer */
+        .crt-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: 100;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 3px, 3px 100%;
+            background: linear-gradient(
+                var(--scanline-color) 50%, 
+                transparent 50%
+            );
+            background-size: 100% 4px;
+            opacity: 0.6;
         }
 
-        .screen-flicker {
+        .crt-glow {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(26, 255, 128, 0.02);
-            opacity: 0;
-            z-index: 99;
-            animation: flicker 0.15s infinite;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.4) 100%);
+            z-index: 101;
+            pointer-events: none;
         }
 
-        @keyframes flicker {
-            0% { opacity: 0.01; } 50% { opacity: 0.03; } 100% { opacity: 0.01; }
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+            z-index: 102;
+            pointer-events: none;
         }
 
-        /* --- UI COMPONENTS --- */
-        .ui-wrapper {
-            padding: 30px 50px;
+        /* Main UI Wrapper */
+        .ui-main {
+            position: relative;
+            width: 100%;
             height: 100%;
+            padding: 30px 60px;
             display: flex;
             flex-direction: column;
             transition: opacity 0.3s ease;
+        }
+
+        .off .ui-main { opacity: 0; }
+
+        /* --- NAVIGATION --- */
+        .header-nav {
+            margin-bottom: 20px;
+        }
+
+        .primary-tabs {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 4px solid var(--pip-green);
+            padding-bottom: 5px;
+        }
+
+        .tab-btn {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            opacity: 0.4;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            opacity: 1;
             text-shadow: var(--pip-glow);
         }
 
-        .off .ui-wrapper { opacity: 0; pointer-events: none; }
-
-        header { border-bottom: 2px solid var(--pip-green); margin-bottom: 15px; }
-        
-        .nav-primary {
-            display: flex;
-            justify-content: space-around;
-            padding-bottom: 10px;
-        }
-
-        .nav-tab {
-            font-size: 1.6rem;
-            font-weight: 900;
-            opacity: 0.3;
-            letter-spacing: 4px;
-            transition: 0.2s;
-            cursor: pointer;
-        }
-
-        .nav-tab.active { opacity: 1; text-shadow: 0 0 15px var(--pip-green); border-bottom: 4px solid var(--pip-green); }
-
-        .nav-secondary {
+        .secondary-tabs {
             display: flex;
             justify-content: center;
-            gap: 25px;
-            padding: 10px 0;
-            font-size: 0.85rem;
+            gap: 30px;
+            padding: 15px 0;
         }
 
-        .sub-tab {
-            padding: 3px 12px;
+        .sub-tab-btn {
+            font-size: 1rem;
+            letter-spacing: 2px;
             opacity: 0.5;
-            cursor: pointer;
+            padding: 4px 12px;
         }
 
-        .sub-tab.active {
-            background: var(--pip-green);
-            color: #0b140e;
+        .sub-tab-btn.active {
             opacity: 1;
-            text-shadow: none;
+            background: var(--pip-green);
+            color: #000;
         }
 
-        /* --- VIEWPORT ENGINE --- */
-        #viewport { flex: 1; overflow: hidden; position: relative; margin-top: 5px; }
+        /* --- VIEWPORT CONTENT --- */
+        #viewport {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
 
-        .list-layout {
+        .content-frame {
+            height: 100%;
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
             gap: 25px;
-            height: 100%;
+            animation: slideUp 0.3s ease-out;
         }
 
-        .scroll-list {
-            overflow-y: auto;
-            border-right: 1px solid var(--pip-green-dim);
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* --- MODULES --- */
+        /* List Module */
+        .pip-list {
+            border-right: 2px solid var(--pip-green-dim);
             padding-right: 15px;
+            overflow-y: auto;
         }
 
-        .scroll-list::-webkit-scrollbar { width: 6px; }
-        .scroll-list::-webkit-scrollbar-thumb { background: var(--pip-green-med); border-radius: 3px; }
-
-        .list-item {
+        .pip-item {
             padding: 10px 15px;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             display: flex;
             justify-content: space-between;
-            font-size: 1.1rem;
-            cursor: pointer;
-            border: 1px solid transparent;
+            transition: 0.1s;
         }
 
-        .list-item:hover { background: var(--pip-green-dim); }
-
-        .list-item.active {
-            background: var(--pip-green);
-            color: #000;
-            font-weight: bold;
-            text-shadow: none;
+        .pip-item.selected {
+            background: var(--pip-green-med);
+            color: #fff;
+            border-left: 5px solid var(--pip-green);
         }
 
-        .detail-pane {
-            border: 1px solid var(--pip-green-med);
-            background: rgba(0,0,0,0.5);
-            padding: 20px;
-            font-size: 0.9rem;
-            line-height: 1.5;
+        /* Info Module */
+        .pip-info {
             display: flex;
             flex-direction: column;
+            gap: 15px;
         }
 
-        /* --- MAP SYSTEM --- */
-        .map-container {
+        .info-card {
+            border: 2px solid var(--pip-green);
+            padding: 15px;
+            background: rgba(26, 255, 128, 0.05);
+            flex: 1;
+        }
+
+        .info-card h2 {
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--pip-green-med);
+            padding-bottom: 5px;
+        }
+
+        /* Map Module */
+        .world-map {
             width: 100%;
             height: 100%;
+            background: #050a05;
             position: relative;
-            background: radial-gradient(circle, var(--pip-green-dim) 1px, transparent 1px);
-            background-size: 30px 30px;
-            border: 1px solid var(--pip-green-med);
+            border: 2px solid var(--pip-green);
+            background-image: 
+                radial-gradient(circle, var(--pip-green-dim) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
-        .map-marker {
+        .map-icon {
             position: absolute;
-            width: 12px;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border: 2px solid var(--pip-green);
+            transform: rotate(45deg);
+        }
+
+        .player-cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        /* --- STAT BARS --- */
+        .stat-bar-container {
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .bar-outer {
             height: 12px;
+            border: 1px solid var(--pip-green);
+            padding: 2px;
+        }
+
+        .bar-inner {
+            height: 100%;
             background: var(--pip-green);
             box-shadow: var(--pip-glow);
-            border-radius: 2px;
+            transition: width 0.4s ease;
         }
-
-        .player-marker {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 16px; height: 16px;
-            background: #fff;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-        }
-
-        /* --- STATS & VAULT BOY --- */
-        .cnd-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            height: 100%;
-            align-items: center;
-        }
-
-        .vault-boy-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 280px;
-            position: relative;
-        }
-
-        .vault-boy-img {
-            height: 100%;
-            filter: sepia(100%) saturate(400%) hue-rotate(85deg) brightness(1.2);
-        }
-
-        /* --- BARS --- */
-        .stat-group { margin-bottom: 20px; }
-        .bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
-        .bar-outer { height: 12px; border: 1px solid var(--pip-green); padding: 1px; }
-        .bar-inner { height: 100%; background: var(--pip-green); box-shadow: var(--pip-glow); transition: width 0.8s ease; }
 
         /* --- FOOTER --- */
         footer {
-            height: 55px;
-            border-top: 2px solid var(--pip-green);
+            height: 60px;
+            border-top: 4px solid var(--pip-green);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1rem;
-            padding: 0 15px;
-            margin-top: 10px;
+            padding: 0 10px;
         }
 
-        /* --- HARDWARE --- */
-        .power-btn {
-            position: absolute;
-            bottom: 65px;
-            right: 145px;
-            width: 80px;
-            height: 80px;
-            z-index: 1000;
-            cursor: pointer;
-            border-radius: 50%;
+        .foot-stat {
+            font-size: 1.1rem;
+            font-weight: bold;
         }
+
+        /* --- HARDWARE CONTROLS --- */
+        .power-toggle {
+            position: absolute;
+            right: -20px;
+            top: 150px;
+            width: 40px;
+            height: 80px;
+            background: #333;
+            border-radius: 5px;
+            box-shadow: 5px 0 10px #000;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        .power-toggle::after {
+            content: "PWR";
+            position: absolute;
+            top: -25px;
+            left: 5px;
+            font-size: 10px;
+            color: #555;
+        }
+
+        /* --- VAULT BOY ANIMATIONS --- */
+        .vault-boy-frame {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 220px;
+        }
+
+        .vb-img {
+            height: 100%;
+            filter: sepia(100%) saturate(300%) hue-rotate(85deg) brightness(1.2);
+            image-rendering: pixelated;
+        }
+
+        /* Glitch Effects */
+        .glitch-flash {
+            animation: flash 0.15s infinite;
+        }
+
+        @keyframes flash {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; transform: scale(1.001); }
+            100% { opacity: 0.9; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--pip-green-med); }
     </style>
 </head>
-<body class="off" id="root">
+<body>
 
-<div class="pipboy-frame">
-    <div class="screen-area">
-        <div class="crt-post-processing"></div>
-        <div class="screen-flicker"></div>
-        
-        <div class="ui-wrapper">
-            <header>
-                <div class="nav-primary">
-                    <div class="nav-tab active" data-tab="STAT">STAT</div>
-                    <div class="nav-tab" data-tab="INV">INV</div>
-                    <div class="nav-tab" data-tab="DATA">DATA</div>
+<div class="chassis-outer" id="main-chassis">
+    <div class="screw s-tl"></div>
+    <div class="screw s-tr"></div>
+    <div class="screw s-bl"></div>
+    <div class="screw s-br"></div>
+
+    <div class="power-toggle" onclick="engine.togglePower()"></div>
+
+    <div class="screen-container">
+        <div class="crt-overlay"></div>
+        <div class="crt-glow"></div>
+        <div class="vignette"></div>
+
+        <div class="ui-main">
+            <header class="header-nav">
+                <div class="primary-tabs">
+                    <span class="tab-btn active" id="tab-STAT" onclick="engine.setTab('STAT')">STAT</span>
+                    <span class="tab-btn" id="tab-INV" onclick="engine.setTab('INV')">INV</span>
+                    <span class="tab-btn" id="tab-DATA" onclick="engine.setTab('DATA')">DATA</span>
+                    <span class="tab-btn" id="tab-MAP" onclick="engine.setTab('MAP')">MAP</span>
+                    <span class="tab-btn" id="tab-RADIO" onclick="engine.setTab('RADIO')">RADIO</span>
                 </div>
-                <div class="nav-secondary" id="sub-nav-container"></div>
+                <div class="secondary-tabs" id="sub-tabs-container">
+                    <!-- Dynamic Sub Tabs -->
+                </div>
             </header>
 
-            <main id="viewport"></main>
+            <main id="viewport">
+                <!-- Dynamic Content -->
+            </main>
 
             <footer>
-                <div id="hp-text">HP 210/210</div>
-                <div id="lvl-text">LEVEL 32</div>
-                <div id="ap-text">AP 105/105</div>
+                <div class="foot-stat" id="hp-display">HP 185/200</div>
+                <div class="foot-stat" id="level-display">LEVEL 24</div>
+                <div class="foot-stat" id="ap-display">AP 95/95</div>
             </footer>
         </div>
     </div>
-
-    <div class="power-btn" onclick="pipboy.togglePower()"></div>
 </div>
 
 <script>
-const DATA = {
+/**
+ * PIP-BOY 3000 Mk IV CORE ENGINE
+ * Author: Professional Front-End Architect
+ * Implementation: Vanilla JS, High-Performance DOM Manipulation
+ */
+
+const PIP_DATA = {
     STAT: {
-        subs: ['CND', 'SPECIAL', 'PERKS', 'GENERAL'],
+        subs: ['CONDITION', 'S.P.E.C.I.A.L.', 'PERKS'],
         content: {
-            CND: {
-                limbs: [
-                    { n: 'HEAD', v: 100 },
-                    { n: 'TORSO', v: 82 },
-                    { n: 'L. ARM', v: 100 },
-                    { n: 'R. ARM', v: 45 },
-                    { n: 'L. LEG', v: 95 },
-                    { n: 'R. LEG', v: 90 }
+            'CONDITION': {
+                type: 'condition',
+                stats: [
+                    { name: 'HEAD', val: 100 },
+                    { name: 'TORSO', val: 85 },
+                    { name: 'L. ARM', val: 90 },
+                    { name: 'R. ARM', val: 40 },
+                    { name: 'L. LEG', val: 100 },
+                    { name: 'R. LEG', val: 95 }
                 ]
             },
-            SPECIAL: [
-                { name: 'STRENGTH', val: 7, desc: 'Your physical power. Influences carry weight and melee damage.' },
-                { name: 'PERCEPTION', val: 8, desc: 'Sensory awareness. Affects weapon accuracy in V.A.T.S.' },
-                { name: 'ENDURANCE', val: 6, desc: 'Overall wellness. Increases total Hit Points.' },
-                { name: 'CHARISMA', val: 10, desc: 'Leadership and diplomacy. Better prices at shops.' },
-                { name: 'INTELLIGENCE', val: 9, desc: 'Knowledge and logic. Improves hacking and experience gain.' },
-                { name: 'AGILITY', val: 7, desc: 'Reflexes and finesse. Grants more Action Points.' },
-                { name: 'LUCK', val: 5, desc: 'Fortune. Increases critical hit recharge rates.' }
+            'S.P.E.C.I.A.L.': [
+                { name: 'STRENGTH', val: 8, desc: 'Your raw physical power. Affects Carry Weight and Melee Damage.' },
+                { name: 'PERCEPTION', val: 6, desc: 'Environmental awareness and V.A.T.S. accuracy.' },
+                { name: 'ENDURANCE', val: 9, desc: 'Overall fitness. Affects total HP and Action Point drain from sprinting.' },
+                { name: 'CHARISMA', val: 5, desc: 'Ability to lead and persuade others. Affects Barter prices.' },
+                { name: 'INTELLIGENCE', val: 10, desc: 'Mental acuity. Affects Experience Points gained.' },
+                { name: 'AGILITY', val: 7, desc: 'Reflexes and finesse. Affects Action Points and Sneak ability.' },
+                { name: 'LUCK', val: 4, desc: 'The measure of your general good fortune. Affects Critical Recharges.' }
             ],
-            PERKS: [
-                { name: 'BLOODY MESS', val: 'Rank 2', desc: 'Enemies often explode in a shower of gore.' },
-                { name: 'MYSTERIOUS STRANGER', val: 'Rank 1', desc: 'A guardian angel appears in V.A.T.S. to help.' },
-                { name: 'SCIENCE!', val: 'Rank 4', desc: 'Access to high-tech energy weapon mods.' }
-            ],
-            GENERAL: [
-                { name: 'KARMA', val: 'SAVIOR', desc: 'You are a beacon of hope for the wasteland.' },
-                { name: 'REPUTATION', val: 'IDOLIZED', desc: 'Towns celebrate your arrival.' }
+            'PERKS': [
+                { name: 'BLOODY MESS', val: 'RANK 2', desc: '+10% bonus Damage means enemies will sometimes explode into a gory red paste.' },
+                { name: 'HACKER', val: 'RANK 3', desc: 'You can break into Master-level terminals.' },
+                { name: 'TOUGHNESS', val: 'RANK 1', desc: 'You now have +10 Damage Resistance.' }
             ]
         }
     },
     INV: {
-        subs: ['WEAPONS', 'APPAREL', 'AID', 'MISC', 'AMMO'],
+        subs: ['WEAPONS', 'APPAREL', 'AID', 'MISC'],
         content: {
-            WEAPONS: [
-                { name: '10MM PISTOL', val: '22 DMG', desc: 'Standard semi-automatic sidearm.' },
-                { name: 'LASER RIFLE', val: '48 DMG', desc: 'Aerospace-grade energy rifle.' },
-                { name: 'COMBAT KNIFE', val: '12 DMG', desc: 'Serrated blade for close encounters.' },
-                { name: 'MINIGUN', val: '80 DMG', desc: 'Whirring death. Requires heavy ammo.' }
+            'WEAPONS': [
+                { name: '10MM PISTOL', val: 18, weight: 3, desc: 'Standard semi-automatic sidearm. High reliability.' },
+                { name: 'COMBAT RIFLE', val: 45, weight: 12, desc: 'A versatile rifle firing .45 rounds.' },
+                { name: 'POWER FIST', val: 60, weight: 6, desc: 'Pneumatic gauntlet. Devastating close-range impact.' },
+                { name: 'FRAG GRENADE', val: 150, weight: 0.5, desc: 'High-explosive fragmentation device.' }
             ],
-            APPAREL: [
-                { name: 'VAULT SUIT', val: '5 DR', desc: 'Sturdy blue and gold jumpsuit.' },
-                { name: 'LEATHER ARMOR', val: '15 DR', desc: 'Reinforced leather padding.' },
-                { name: 'POWER ARMOR', val: '60 DR', desc: 'The pinnacle of pre-war protection.' }
+            'APPAREL': [
+                { name: 'VAULT 111 SUIT', val: 5, weight: 1, desc: 'Standard Vault-Tec jumpsuit.' },
+                { name: 'COMBAT ARMOR CHEST', val: 25, weight: 15, desc: 'Medium-grade ballistic protection.' },
+                { name: 'WORN FEDORA', val: 1, weight: 0.5, desc: '+1 Charisma. You look stylish.' }
             ],
-            AID: [
-                { name: 'STIMPAK', val: 'x12', desc: 'Restores 30% total health.' },
-                { name: 'RAD-AWAY', val: 'x05', desc: 'Removes 200 units of radiation.' },
-                { name: 'PURIFIED WATER', val: 'x20', desc: 'Clean, safe hydration.' }
-            ],
-            AMMO: [
-                { name: '10MM ROUND', val: '450', desc: 'Used by standard pistols.' },
-                { name: 'FUSION CELL', val: '220', desc: 'Energy source for laser weapons.' }
+            'AID': [
+                { name: 'STIMPAK (12)', val: 'HEAL', weight: 0, desc: 'Restores 30% of your maximum health.' },
+                { name: 'RADAWAY (4)', val: 'RADS', weight: 0.1, desc: 'Removes 300 points of radiation.' },
+                { name: 'NUKA COLA', val: 'AP+', weight: 1, desc: 'Restores 20 Action Points.' }
             ]
         }
     },
     DATA: {
-        subs: ['MAP', 'QUESTS', 'RADIO'],
+        subs: ['QUESTS', 'WORKSHOPS'],
         content: {
-            QUESTS: [
-                { name: 'THE BIG TOWN', val: 'ACTIVE', desc: 'Help the residents defend against raiders.' },
-                { name: 'REPLICATED MAN', val: 'ACTIVE', desc: 'Find the missing android in Rivet City.' },
-                { name: 'RADIO FREEDOM', val: 'DONE', desc: 'Restored the signal to the Minutemen.' }
-            ],
-            RADIO: [
-                { name: 'GALAXY NEWS RADIO', val: 'ON', desc: 'Broadcasting from the Capital.' },
-                { name: 'ENCLAVE RADIO', val: 'OFF', desc: 'Propaganda and military marches.' },
-                { name: 'DIAMOND CITY RADIO', val: 'OFF', desc: 'The hits of tomorrow, today!' }
+            'QUESTS': [
+                { name: 'THE FIRST STEP', val: 'ACTIVE', desc: 'Talk to the settlers at Tenpines Bluff.' },
+                { name: 'UNLIKELY VALENTINE', val: 'ACTIVE', desc: 'Find Nick Valentine in Park Street Station.' },
+                { name: 'JEWEL OF THE COMMONWEALTH', val: 'DONE', desc: 'You have arrived at Diamond City.' }
+            ]
+        }
+    },
+    MAP: {
+        subs: ['WORLD MAP', 'LOCAL MAP'],
+        content: {
+            'WORLD MAP': { type: 'map' }
+        }
+    },
+    RADIO: {
+        subs: ['STATIONS'],
+        content: {
+            'STATIONS': [
+                { name: 'DIAMOND CITY RADIO', val: 'ON', desc: 'Playing: "Maybe" by The Ink Spots' },
+                { name: 'CLASSICAL RADIO', val: 'OFF', desc: 'Broadcasting high-culture symphonies.' },
+                { name: 'MILITARY FREQUENCY', val: 'OFF', desc: 'Encrypted brotherhood signals.' }
             ]
         }
     }
 };
 
-const pipboy = {
-    isOn: false,
+const engine = {
     currentTab: 'STAT',
-    currentSub: 'CND',
+    currentSub: 'CONDITION',
+    isPowerOn: true,
+    player: { hp: 185, maxHp: 200, ap: 95, maxAp: 95, level: 24 },
 
     init() {
-        this.renderSubNav();
+        this.renderSubTabs();
         this.renderViewport();
-        this.bindEvents();
+        this.startHeartbeat();
+        console.log("Pip-Boy 3000 Mk IV Online. Optimized for Chromium 90+.");
     },
 
     togglePower() {
-        this.isOn = !this.isOn;
-        document.getElementById('root').className = this.isOn ? '' : 'off';
-        if (this.isOn) {
-            const flicker = document.querySelector('.screen-flicker');
-            flicker.style.animation = 'flicker 0.05s infinite';
-            setTimeout(() => flicker.style.animation = 'flicker 0.15s infinite', 500);
+        this.isPowerOn = !this.isPowerOn;
+        const chassis = document.getElementById('main-chassis');
+        chassis.classList.toggle('off', !this.isPowerOn);
+        
+        if (this.isPowerOn) {
+            this.glitchEffect(500);
         }
     },
 
-    bindEvents() {
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.onclick = () => {
-                if (!this.isOn) return;
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                this.currentTab = tab.dataset.tab;
-                this.currentSub = DATA[this.currentTab].subs[0];
-                this.renderSubNav();
-                this.renderViewport();
-            };
+    setTab(tab) {
+        if (!this.isPowerOn) return;
+        this.currentTab = tab;
+        this.currentSub = PIP_DATA[tab].subs[0];
+        
+        // Update UI
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.id === `tab-${tab}`) btn.classList.add('active');
         });
+
+        this.glitchEffect(150);
+        this.renderSubTabs();
+        this.renderViewport();
     },
 
-    renderSubNav() {
-        const container = document.getElementById('sub-nav-container');
+    setSubTab(sub) {
+        if (!this.isPowerOn) return;
+        this.currentSub = sub;
+        
+        document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.innerText === sub) btn.classList.add('active');
+        });
+
+        this.renderViewport();
+    },
+
+    renderSubTabs() {
+        const container = document.getElementById('sub-tabs-container');
         container.innerHTML = '';
-        DATA[this.currentTab].subs.forEach(sub => {
-            const el = document.createElement('div');
-            el.className = `sub-tab ${sub === this.currentSub ? 'active' : ''}`;
-            el.innerText = sub;
-            el.onclick = () => {
-                this.currentSub = sub;
-                this.renderSubNav();
-                this.renderViewport();
-            };
-            container.appendChild(el);
+        
+        PIP_DATA[this.currentTab].subs.forEach(sub => {
+            const btn = document.createElement('div');
+            btn.className = `sub-tab-btn ${sub === this.currentSub ? 'active' : ''}`;
+            btn.innerText = sub;
+            btn.onclick = () => this.setSubTab(sub);
+            container.appendChild(btn);
         });
     },
 
     renderViewport() {
-        const vp = document.getElementById('viewport');
-        vp.innerHTML = '';
-        const content = DATA[this.currentTab].content[this.currentSub];
+        const viewport = document.getElementById('viewport');
+        viewport.innerHTML = '';
 
-        if (this.currentSub === 'CND') {
-            this.renderCondition(vp, content);
-        } else if (this.currentSub === 'MAP') {
-            this.renderMap(vp);
-        } else {
-            this.renderList(vp, content || []);
-        }
-    },
-
-    renderMap(container) {
-        container.innerHTML = `
-            <div class="map-container">
-                <div class="player-marker"></div>
-                <div class="map-marker" style="top:20%; left:30%;"></div>
-                <div class="map-marker" style="top:70%; left:80%;"></div>
-                <div class="map-marker" style="top:45%; left:15%;"></div>
-                <div style="position:absolute; bottom:10px; left:10px; font-size:0.8rem;">MEGATON: DISCOVERED</div>
-            </div>
-        `;
-    },
-
-    renderCondition(container, data) {
-        const isHurt = data.limbs.some(l => l.v < 50);
-        const imgPath = isHurt ? 'assets/screen/vbbrokenarm.png' : 'assets/screen/vbnormal.png';
+        const data = PIP_DATA[this.currentTab].content[this.currentSub];
         
-        container.innerHTML = `
-            <div class="cnd-layout">
-                <div class="vault-boy-container">
-                    <img src="${imgPath}" class="vault-boy-img">
-                </div>
-                <div class="stats-panel">
-                    ${data.limbs.map(l => `
-                        <div class="stat-group">
-                            <div class="bar-label"><span>${l.n}</span><span>${l.v}%</span></div>
-                            <div class="bar-outer"><div class="bar-inner" style="width: ${l.v}%"></div></div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
+        if (!data) {
+            viewport.innerHTML = `<div class="content-frame">NOT IMPLEMENTED</div>`;
+            return;
+        }
+
+        if (data.type === 'condition') {
+            this.renderCondition(viewport, data);
+        } else if (data.type === 'map') {
+            this.renderMap(viewport);
+        } else {
+            this.renderList(viewport, data);
+        }
     },
 
     renderList(container, items) {
         const frame = document.createElement('div');
-        frame.className = 'list-layout';
-        
-        const list = document.createElement('div');
-        list.className = 'scroll-list';
-        
-        const details = document.createElement('div');
-        details.className = 'detail-pane';
-        details.id = 'detail-view';
+        frame.className = 'content-frame';
+
+        const listDiv = document.createElement('div');
+        listDiv.className = 'pip-list';
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'pip-info';
+        infoDiv.innerHTML = `<div class="info-card" id="detail-card"><h3>SELECT ITEM</h3></div>`;
 
         items.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = `list-item ${idx === 0 ? 'active' : ''}`;
-            div.innerHTML = `<span>${item.name}</span><span>${item.val || ''}</span>`;
-            div.onclick = () => {
-                document.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'));
-                div.classList.add('active');
-                details.innerHTML = `<h2 style="margin-top:0">${item.name}</h2><p>${item.desc}</p>`;
+            const el = document.createElement('div');
+            el.className = `pip-item ${idx === 0 ? 'selected' : ''}`;
+            el.innerHTML = `<span>${item.name}</span><span>${item.val}</span>`;
+            
+            el.onmouseover = () => {
+                document.querySelectorAll('.pip-item').forEach(i => i.classList.remove('selected'));
+                el.classList.add('selected');
+                this.updateDetail(item);
             };
-            list.appendChild(div);
-            if (idx === 0) details.innerHTML = `<h2 style="margin-top:0">${item.name}</h2><p>${item.desc}</p>`;
+
+            listDiv.appendChild(el);
+            if (idx === 0) this.updateDetail(item);
         });
 
-        frame.appendChild(list);
-        frame.appendChild(details);
+        frame.appendChild(listDiv);
+        frame.appendChild(infoDiv);
         container.appendChild(frame);
+    },
+
+    updateDetail(item) {
+        const card = document.getElementById('detail-card');
+        if (!card) return;
+        card.innerHTML = `
+            <h2>${item.name}</h2>
+            <div style="margin-bottom: 10px; font-size: 0.9rem;">
+                ${item.weight ? `WEIGHT: ${item.weight} | ` : ''} 
+                VALUE: ${item.val}
+            </div>
+            <p>${item.desc}</p>
+        `;
+    },
+
+    renderCondition(container, data) {
+        const frame = document.createElement('div');
+        frame.className = 'content-frame';
+        
+        frame.innerHTML = `
+            <div class="vault-boy-frame">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2Zkb25iNXZkNjBqM3F2dmZ2dmZ2dmZ2dmZ2dmZ2dmZ2dmZ2Jm0/12Msh5lHHZpXEY/giphy.gif" class="vb-img">
+            </div>
+            <div class="pip-info">
+                ${data.stats.map(s => `
+                    <div class="stat-bar-container">
+                        <div class="stat-label"><span>${s.name}</span><span>${s.val}%</span></div>
+                        <div class="bar-outer"><div class="bar-inner" style="width: ${s.val}%"></div></div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(frame);
+    },
+
+    renderMap(container) {
+        const frame = document.createElement('div');
+        frame.className = 'world-map';
+        
+        // Add some random icons
+        for(let i=0; i<5; i++) {
+            const icon = document.createElement('div');
+            icon.className = 'map-icon';
+            icon.style.left = (20 + Math.random() * 60) + '%';
+            icon.style.top = (20 + Math.random() * 60) + '%';
+            frame.appendChild(icon);
+        }
+
+        const player = document.createElement('div');
+        player.className = 'player-cursor';
+        player.style.left = '50%';
+        player.style.top = '50%';
+        frame.appendChild(player);
+
+        container.appendChild(frame);
+    },
+
+    glitchEffect(dur) {
+        const ui = document.querySelector('.ui-main');
+        ui.classList.add('glitch-flash');
+        setTimeout(() => ui.classList.remove('glitch-flash'), dur);
+    },
+
+    startHeartbeat() {
+        // Aesthetic flickering and stat updates
+        setInterval(() => {
+            if (!this.isPowerOn) return;
+            if (Math.random() > 0.98) this.glitchEffect(50);
+            
+            // Random HP fluctuation simulation
+            if (Math.random() > 0.95) {
+                this.player.hp = Math.min(this.player.maxHp, this.player.hp + (Math.random() > 0.5 ? 1 : -1));
+                document.getElementById('hp-display').innerText = `HP ${this.player.hp}/${this.player.maxHp}`;
+            }
+        }, 1000);
     }
 };
 
-window.onload = () => pipboy.init();
+window.onload = () => engine.init();
+
 </script>
 </body>
 </html>
