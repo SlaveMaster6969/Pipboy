@@ -7,8 +7,12 @@
     <style>
         :root {
             --pip-green: #1aff80;
+            --pip-green-dim: rgba(26, 255, 128, 0.3);
             --pip-glow: rgba(26, 255, 128, 0.6);
+            --pip-bg: #0b140e;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             background-color: #050505;
@@ -19,6 +23,8 @@
             margin: 0;
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
+            color: var(--pip-green);
+            text-transform: uppercase;
         }
 
         /* --- THE FIXED BORDER CONTAINER --- */
@@ -29,8 +35,8 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            /* Keeps the border steady */
             background-image: url('monitorborder.png'); 
+            transition: background-image 0.1s;
         }
 
         .pipboy-module.off {
@@ -60,12 +66,7 @@
             display: none; /* Hide screen entirely when off */
         }
 
-        /* --- THE GLITCH (Only affects the screen area) --- */
-        .power-glitch {
-            animation: malfunction 0.2s steps(2) infinite !important;
-            filter: brightness(0.2) contrast(1.5) sepia(1) hue-rotate(80deg);
-        }
-
+        /* Scanline Overlay */
         .scanline {
             width: 100%;
             height: 100%;
@@ -77,20 +78,83 @@
             pointer-events: none;
         }
 
-        nav {
-            padding: 20px;
-            border-bottom: 2px solid var(--pip-green);
+        /* --- UI COMPONENTS --- */
+        header {
+            padding: 15px 20px 5px 20px;
             display: flex;
-            gap: 20px;
-            font-weight: bold;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 2px solid var(--pip-green);
             background: rgba(0,0,0,0.2);
+            z-index: 2;
         }
 
-        .nav-item { cursor: pointer; opacity: 0.6; transition: 0.2s; }
-        .nav-item:hover { opacity: 1; text-shadow: 0 0 15px var(--pip-green); }
-        .nav-item.active { opacity: 1; border-bottom: 2px solid var(--pip-green); }
+        nav {
+            display: flex;
+            gap: 20px;
+        }
 
-        #content { padding: 20px; font-size: 1.2rem; }
+        .nav-item {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.6;
+            transition: 0.2s;
+            padding-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            opacity: 1;
+            text-shadow: 0 0 15px var(--pip-green);
+        }
+
+        .nav-item.active {
+            opacity: 1;
+            border-bottom: 2px solid var(--pip-green);
+        }
+
+        #content {
+            flex-grow: 1;
+            padding: 20px;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        footer {
+            padding: 5px 20px;
+            border-top: 1px solid var(--pip-green-dim);
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        /* --- STATS STYLING --- */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 12px;
+            border: 1px solid var(--pip-green);
+            margin: 4px 0 10px 0;
+            padding: 1px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--pip-green);
+            box-shadow: 0 0 8px var(--pip-green);
+        }
+
+        .low-battery {
+            color: #ff3333;
+            animation: blink 1s infinite;
+        }
 
         /* --- ANIMATIONS --- */
         @keyframes micro-flicker {
@@ -99,13 +163,33 @@
             100% { opacity: 0.97; }
         }
 
-        @keyframes malfunction {
-            0% { opacity: 0.3; transform: translateX(-2px); }
-            50% { opacity: 0.1; transform: translateX(4px) scaleY(0.9); }
-            100% { opacity: 0.4; transform: translateX(0); }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
         }
 
-        /* Power Button Click Area */
+        @keyframes glitch-anim {
+            0% { transform: translate(0); filter: brightness(1); }
+            20% { transform: translate(-3px, 1px); filter: brightness(0.5) sepia(1); }
+            40% { transform: translate(3px, -1px); }
+            100% { transform: translate(0); filter: brightness(1); }
+        }
+
+        .power-glitch {
+            animation: glitch-anim 0.2s steps(2) infinite !important;
+        }
+
+        .typewriter {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid var(--pip-green);
+            animation: typing 1s steps(30, end), blink-caret .75s step-end infinite;
+        }
+
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--pip-green); } }
+
+        /* Power Button Click Area - Adjusted for your border image */
         .power-btn {
             position: absolute;
             bottom: 45px;
@@ -122,14 +206,28 @@
 <div class="pipboy-module" id="pipboy">
     <div class="screen-area" id="screen">
         <div class="scanline"></div>
-        <nav>
-            <span class="nav-item active" onclick="setTab('STAT')">STAT</span>
-            <span class="nav-item" onclick="setTab('INV')">INV</span>
-            <span class="nav-item" onclick="setTab('DATA')">DATA</span>
-        </nav>
-        <div id="content"></div>
+        
+        <header>
+            <nav>
+                <div class="nav-item active" onclick="setTab('STAT', this)">STAT</div>
+                <div class="nav-item" onclick="setTab('INV', this)">INV</div>
+                <div class="nav-item" onclick="setTab('DATA', this)">DATA</div>
+            </nav>
+            <div id="clock">12:00 PM</div>
+        </header>
+
+        <div id="content">
+            <!-- Content Injected Here -->
+        </div>
+
+        <footer>
+            <span>HP 92/100</span>
+            <span>LVL 12</span>
+            <span class="low-battery">BATTERY: 3%</span>
+        </footer>
     </div>
     
+    <!-- Invisible Hitbox for the Power Button in your Image -->
     <div class="power-btn" onclick="togglePower()"></div>
 </div>
 
@@ -140,44 +238,97 @@
     const pipboy = document.getElementById('pipboy');
 
     const data = {
-        STAT: "<b>CONDITION</b><br><br>HP [||||||----]<br>AP [||||||||||]<br><br>BATTERY: 4% (WARNING)",
-        INV: "<b>WEAPONS</b><br>• Laser Pistol<br>• Combat Knife<br><br><b>AID</b><br>• Purified Water",
-        DATA: "<b>LOCATION: VAULT 101</b><br><br>> Escape!<br>> Find Dad"
+        STAT: `
+            <div class="stat-grid">
+                <div style="border: 1px solid var(--pip-green); height: 140px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="80" height="80" viewBox="0 0 100 100">
+                        <circle cx="50" cy="40" r="20" stroke="var(--pip-green)" fill="none" stroke-width="2"/>
+                        <path d="M30 80 Q50 60 70 80" stroke="var(--pip-green)" fill="none" stroke-width="2"/>
+                        <circle cx="43" cy="35" r="2" fill="var(--pip-green)"/>
+                        <circle cx="57" cy="35" r="2" fill="var(--pip-green)"/>
+                    </svg>
+                </div>
+                <div>
+                    <div style="margin-bottom: 5px;">STR</div>
+                    <div class="bar-container"><div class="bar-fill" style="width: 80%"></div></div>
+                    <div style="margin-bottom: 5px;">END</div>
+                    <div class="bar-container"><div class="bar-fill" style="width: 60%"></div></div>
+                    <div style="margin-bottom: 5px;">LCK</div>
+                    <div class="bar-container"><div class="bar-fill" style="width: 30%"></div></div>
+                </div>
+            </div>
+        `,
+        INV: `
+            <b class="typewriter">WEAPONS</b><br>
+            • 10mm Pistol [Equipped]<br>
+            • Combat Knife<br><br>
+            <b class="typewriter">AID</b><br>
+            • Stimpak (2)<br>
+            • Purified Water
+        `,
+        DATA: `
+            <b class="typewriter">ACTIVE QUESTS</b><br><br>
+            > Escape from Vault 101<br>
+            > Locate Dad<br>
+            <div style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">
+                Current Location: Wasteland Outskirts
+            </div>
+        `
     };
 
-    function setTab(tab) {
-        if (!isPoweredOn) return;
-        document.querySelectorAll('.nav-item').forEach(el => {
-            el.classList.toggle('active', el.innerText === tab);
-        });
-        contentDiv.innerHTML = data[tab];
+    function updateClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('clock').innerText = timeStr;
     }
 
-    function triggerRandomGlitch() {
+    function setTab(tab, el) {
         if (!isPoweredOn) return;
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        el.classList.add('active');
+        contentDiv.innerHTML = data[tab];
 
-        // Roughly 15% chance to glitch
-        if (Math.random() > 0.85) {
-            screen.classList.add('power-glitch');
-            setTimeout(() => {
-                screen.classList.remove('power-glitch');
-            }, Math.random() * 300 + 100);
-        }
-        setTimeout(triggerRandomGlitch, Math.random() * 3000 + 500);
+        // Small glitch effect on tab change
+        screen.classList.add('power-glitch');
+        setTimeout(() => screen.classList.remove('power-glitch'), 100);
     }
 
     function togglePower() {
         isPoweredOn = !isPoweredOn;
         pipboy.classList.toggle('off');
         if(isPoweredOn) {
-            setTab('STAT');
-            triggerRandomGlitch();
+            setTab('STAT', document.querySelector('.nav-item'));
         }
     }
 
-    // Start
-    setTab('STAT');
+    function triggerRandomGlitch() {
+        if (!isPoweredOn) {
+            setTimeout(triggerRandomGlitch, 2000);
+            return;
+        }
+
+        if (Math.random() > 0.92) {
+            screen.classList.add('power-glitch');
+            setTimeout(() => {
+                screen.classList.remove('power-glitch');
+            }, Math.random() * 300 + 100);
+        }
+        setTimeout(triggerRandomGlitch, Math.random() * 4000 + 1000);
+    }
+
+    // Initialize
+    updateClock();
+    setInterval(updateClock, 1000);
+    contentDiv.innerHTML = data.STAT;
     triggerRandomGlitch();
+
+    // Scale device to fit screen if window is too small
+    function handleResize() {
+        const scale = Math.min(window.innerWidth / 850, window.innerHeight / 650);
+        pipboy.style.transform = scale < 1 ? `scale(${scale})` : `scale(1)`;
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
 </script>
 
 </body>
