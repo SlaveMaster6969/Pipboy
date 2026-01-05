@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pip-Boy 3000 - Advanced Replica</title>
     <style>
-        /* AUTHENTIC PIP-BOY 3000 STYLING - FULL EXTENSION */
+        /* AUTHENTIC PIP-BOY 3000 STYLING */
         :root {
             --pip-green: #1aff80;
             --pip-green-dim: rgba(26, 255, 128, 0.12);
@@ -13,14 +13,11 @@
             --pip-glow: rgba(26, 255, 128, 0.6);
             --pip-bg: #0b140e;
             --crt-curve: perspective(1200px) rotateX(2.5deg) rotateY(-1.5deg);
-            --ui-font: 'Courier New', Courier, monospace;
         }
 
         * { 
             box-sizing: border-box;
             cursor: default;
-            scrollbar-width: thin;
-            scrollbar-color: var(--pip-green) transparent;
         }
 
         body {
@@ -30,7 +27,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: var(--ui-font);
+            font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             color: var(--pip-green);
             text-transform: uppercase;
@@ -44,11 +41,14 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            background-image: url('https://i.imgur.com/Wf1zX3v.png'); 
-            transition: filter 0.3s;
+            background-image: url('assets/screen/monitorborder.png'); 
+            transition: background-image 0.2s;
         }
 
-        .pipboy-module.off { filter: brightness(0.15) contrast(0.8); }
+        .pipboy-module.off {
+            background-image: url('assets/screen/monitorborder-off.png');
+            filter: brightness(0.2);
+        }
 
         /* --- CRT SCREEN CONTAINER --- */
         .screen-area {
@@ -57,7 +57,8 @@
             left: 110px;
             width: 670px;
             height: 440px;
-            background-color: var(--pip-bg);
+            background-image: url('assets/screen/bg.png');
+            background-size: cover;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -72,209 +73,95 @@
 
         .off .screen-area { display: none; }
 
-        /* --- OVERLAYS --- */
         .scanlines {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
             background-size: 100% 3px;
             z-index: 50;
             pointer-events: none;
             opacity: 0.8;
         }
 
-        .screen-burn {
+        .screen-area::before {
+            content: " ";
+            display: block;
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.4) 100%);
-            z-index: 40;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: rgba(26, 255, 128, 0.02);
+            opacity: 0;
+            z-index: 49;
             pointer-events: none;
+            animation: static-noise 0.2s infinite;
+        }
+
+        @keyframes static-noise {
+            0% { transform: translate(0,0) }
+            10% { transform: translate(-1%,-1%) }
+            20% { transform: translate(1%,1%) }
+            100% { transform: translate(0,0) }
         }
 
         /* --- HEADER & NAVIGATION --- */
         header { padding: 20px 50px 0 50px; z-index: 10; }
-        .main-nav { 
-            display: flex; 
-            justify-content: space-between; 
-            border-bottom: 4px solid var(--pip-green); 
-            padding-bottom: 2px; 
-        }
-        .nav-item { 
-            cursor: pointer; 
-            font-size: 1.6rem; 
-            font-weight: 900; 
-            letter-spacing: 4px; 
-            opacity: 0.4; 
-            transition: 0.1s; 
-            user-select: none; 
-        }
+        .main-nav { display: flex; justify-content: space-between; border-bottom: 4px solid var(--pip-green); padding-bottom: 2px; }
+        .nav-item { cursor: pointer; font-size: 1.6rem; font-weight: 900; letter-spacing: 4px; opacity: 0.4; transition: 0.1s; user-select: none; }
         .nav-item.active { opacity: 1; text-shadow: 0 0 15px var(--pip-green); }
 
-        .sub-nav { 
-            display: flex; 
-            justify-content: center; 
-            gap: 20px; 
-            padding: 10px 0; 
-            font-size: 0.85rem; 
-            font-weight: bold; 
-        }
-        .sub-tab { 
-            cursor: pointer; 
-            opacity: 0.6; 
-            padding: 2px 8px; 
-            transition: 0.15s; 
-            position: relative; 
-        }
-        .sub-tab.active { 
-            opacity: 1; 
-            background: var(--pip-green); 
-            color: #0b140e; 
-            text-shadow: none; 
-        }
+        .sub-nav { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-size: 0.85rem; font-weight: bold; }
+        .sub-tab { cursor: pointer; opacity: 0.6; padding: 2px 8px; transition: 0.15s; position: relative; }
+        .sub-tab.active { opacity: 1; background: var(--pip-green); color: #0b140e; text-shadow: none; }
 
-        #viewport { 
-            flex-grow: 1; 
-            padding: 10px 50px; 
-            overflow-y: hidden; 
-            position: relative; 
-            z-index: 5; 
-        }
+        #viewport { flex-grow: 1; padding: 10px 50px; overflow-y: hidden; position: relative; z-index: 5; }
 
         /* --- FOOTER --- */
-        footer { 
-            height: 50px; 
-            border-top: 3px solid var(--pip-green); 
-            margin: 0 50px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-weight: 900; 
-            font-size: 0.9rem; 
-            background: rgba(0,0,0,0.4); 
-        }
+        footer { height: 50px; border-top: 3px solid var(--pip-green); margin: 0 50px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 0.9rem; background: rgba(0,0,0,0.4); }
         .footer-stat-group { display: flex; gap: 20px; }
 
-        /* --- LIST COMPONENTS --- */
-        .list-container { 
-            display: grid; 
-            grid-template-columns: 1.2fr 0.8fr; 
-            gap: 20px; 
-            height: 100%; 
-        }
-        .scroll-list { 
-            height: 260px; 
-            overflow-y: auto; 
-            border-right: 1px solid var(--pip-green-dim); 
-            padding-right: 10px; 
-        }
-        .list-entry { 
-            padding: 6px 12px; 
-            margin-bottom: 2px; 
-            cursor: pointer; 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 0.95rem; 
-            border: 1px solid transparent;
-        }
-        .list-entry:hover { background: var(--pip-green-dim); }
-        .list-entry.selected { 
-            background: var(--pip-green-med); 
-            color: #fff; 
-            border-left: 4px solid var(--pip-green); 
-        }
+        /* --- REUSABLE COMPONENTS --- */
+        .list-container { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; height: 100%; }
+        .scroll-list { height: 260px; overflow-y: auto; border-right: 1px solid var(--pip-green-dim); padding-right: 10px; }
+        .list-entry { padding: 6px 12px; margin-bottom: 2px; cursor: pointer; display: flex; justify-content: space-between; font-size: 0.95rem; }
+        .list-entry.selected { background: var(--pip-green-med); color: #fff; border-left: 4px solid var(--pip-green); }
 
-        .detail-box { 
-            border: 2px solid var(--pip-green); 
-            padding: 15px; 
-            background: rgba(0,0,0,0.5); 
-            font-size: 0.8rem; 
-            line-height: 1.5; 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            height: 100%; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        .detail-box h3 { 
-            margin-top: 0; 
-            color: var(--pip-green); 
-            border-bottom: 1px solid var(--pip-green-med); 
-            padding-bottom: 5px; 
-            font-size: 1.1rem;
-        }
+        .detail-box { border: 2px solid var(--pip-green); padding: 15px; background: rgba(0,0,0,0.5); font-size: 0.8rem; line-height: 1.5; flex-grow: 1; overflow-y: auto; height: 100%; }
+        .detail-box h3 { margin-top: 0; color: var(--pip-green); border-bottom: 1px solid var(--pip-green-med); padding-bottom: 5px; }
 
-        /* --- ACTION BUTTONS --- */
-        .action-area {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .use-btn {
-            background: var(--pip-green);
-            color: black;
-            border: none;
-            padding: 8px;
-            font-weight: bold;
-            font-family: inherit;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        .use-btn:hover { background: #fff; }
-        .use-btn:active { transform: translateY(2px); }
-        .use-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* --- STATS & BARS --- */
+        /* Progress Bars */
         .progress-bar-wrap { margin-bottom: 12px; }
         .pb-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px; }
         .pb-outer { height: 10px; border: 1px solid var(--pip-green); padding: 1px; background: rgba(0,0,0,0.3); }
-        .pb-inner { height: 100%; background: var(--pip-green); box-shadow: 0 0 8px var(--pip-green); transition: width 0.4s ease; }
+        .pb-inner { height: 100%; background: var(--pip-green); box-shadow: 0 0 8px var(--pip-green); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* --- CND TAB LAYOUT --- */
-        .condition-layout { 
-            display: grid; 
-            grid-template-columns: 1.1fr 0.9fr; 
-            height: 100%; 
-            align-items: flex-start; 
-            gap: 10px; 
-        }
-        .vault-boy-visual { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            position: relative; 
-            height: 260px; 
-            background: rgba(26, 255, 128, 0.03); 
-            border-radius: 10px; 
-            border: 1px solid var(--pip-green-dim);
-        }
+        /* Condition Layout with Assets */
+        .condition-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; height: 100%; align-items: flex-start; gap: 10px; }
+        .vault-boy-visual { display: flex; justify-content: center; align-items: center; position: relative; height: 260px; background: rgba(26, 255, 128, 0.05); border-radius: 10px; }
         
-        .vault-boy-img { 
-            width: 170px; 
-            height: auto; 
-            filter: sepia(100%) saturate(300%) hue-rotate(80deg) brightness(1.1); 
-            opacity: 0.9;
+        .vault-boy-img {
+            width: 170px;
+            height: auto;
+            filter: sepia(100%) saturate(300%) hue-rotate(80deg) brightness(1.1);
         }
 
         .limb-indicator {
             position: absolute;
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             font-weight: bold;
             border: 1px solid var(--pip-green);
-            padding: 2px 5px;
+            padding: 2px 6px;
             background: black;
+            box-shadow: 0 0 5px var(--pip-green-dim);
             transition: all 0.3s;
         }
-        .limb-head { top: 15px; left: 50%; transform: translateX(-50%); }
+
+        .limb-head { top: 10px; left: 50%; transform: translateX(-50%); }
         .limb-la { top: 90px; left: 10px; }
         .limb-ra { top: 90px; right: 10px; }
-        .limb-ll { bottom: 20px; left: 25%; }
-        .limb-rl { bottom: 20px; right: 25%; }
+        .limb-ll { bottom: 10px; left: 25%; }
+        .limb-rl { bottom: 10px; right: 25%; }
 
-        /* --- MAP COMPONENT --- */
-        .map-viewport {
+        /* Local Map Component */
+        .map-container {
             width: 100%;
             height: 280px;
             border: 2px solid var(--pip-green);
@@ -284,102 +171,85 @@
             background-image: 
                 linear-gradient(var(--pip-green-dim) 1px, transparent 1px),
                 linear-gradient(90deg, var(--pip-green-dim) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-
-        .map-content {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            transition: transform 0.5s ease-out;
+            background-size: 30px 30px;
         }
 
         .map-marker {
             position: absolute;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             background: white;
             border: 2px solid var(--pip-green);
             border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px white;
+            animation: pulse-marker 1.5s infinite;
         }
 
         .map-label {
             position: absolute;
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             background: black;
             border: 1px solid var(--pip-green);
-            padding: 2px 6px;
-            transform: translate(10px, -5px);
-            white-space: nowrap;
+            padding: 2px 5px;
+            pointer-events: none;
         }
 
-        /* --- SPECIAL EFFECTS --- */
-        #msg-popup {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
+        @keyframes pulse-marker {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Radio Waveform */
+        .radio-visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 40px;
+            margin-top: 10px;
+        }
+
+        .wave-bar {
+            width: 4px;
             background: var(--pip-green);
-            color: black;
-            padding: 8px 25px;
-            font-weight: bold;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 0 30px var(--pip-green);
-            letter-spacing: 2px;
+            animation: wave-bounce 0.5s infinite alternate;
         }
 
-        .flicker-heavy { animation: heavy-flicker-anim 0.08s steps(2) infinite; }
+        @keyframes wave-bounce {
+            from { height: 10%; }
+            to { height: 100%; }
+        }
+
+        /* Effects */
+        .flicker-heavy { animation: heavy-flicker-anim 0.1s steps(2) infinite; }
         @keyframes heavy-flicker-anim {
-            0% { opacity: 1; filter: brightness(1.3); }
-            50% { opacity: 0.6; filter: brightness(0.7); }
+            0% { opacity: 1; filter: contrast(1.2) brightness(1.2); }
+            50% { opacity: 0.7; filter: contrast(0.8) brightness(0.6); }
             100% { opacity: 1; }
         }
 
-        .tab-transition { animation: slide-in 0.25s ease-out; }
-        @keyframes slide-in { 
-            from { transform: translateX(15px); opacity: 0; } 
-            to { transform: translateX(0); opacity: 1; } 
-        }
+        .tab-transition { animation: slide-in 0.2s ease-out; }
+        @keyframes slide-in { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .btn-power { 
-            position: absolute; 
-            bottom: 60px; 
-            right: 140px; 
-            width: 70px; 
-            height: 70px; 
-            cursor: pointer; 
-            z-index: 100; 
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--pip-green); }
 
-        /* Custom Scrollbar for list */
-        .scroll-list::-webkit-scrollbar { width: 4px; }
-        .scroll-list::-webkit-scrollbar-track { background: transparent; }
-        .scroll-list::-webkit-scrollbar-thumb { background: var(--pip-green); }
-
+        .btn-power { position: absolute; bottom: 60px; right: 140px; width: 70px; height: 70px; cursor: pointer; z-index: 100; }
     </style>
 </head>
 <body>
 
 <div class="pipboy-module" id="pip-chassis">
-    <div id="msg-popup">SYSTEM INITIALIZED</div>
     <div class="screen-area" id="crt-screen">
         <div class="scanlines"></div>
-        <div class="screen-burn"></div>
-        
         <header>
             <nav class="main-nav">
-                <div class="nav-item active" id="nav-STAT" onclick="ui.changeMainTab('STAT', this)">STAT</div>
-                <div class="nav-item" id="nav-INV" onclick="ui.changeMainTab('INV', this)">INV</div>
-                <div class="nav-item" id="nav-DATA" onclick="ui.changeMainTab('DATA', this)">DATA</div>
+                <div class="nav-item active" onclick="ui.changeMainTab('STAT', this)">STAT</div>
+                <div class="nav-item" onclick="ui.changeMainTab('INV', this)">INV</div>
+                <div class="nav-item" onclick="ui.changeMainTab('DATA', this)">DATA</div>
             </nav>
             <div class="sub-nav" id="sub-nav"></div>
         </header>
-
         <main id="viewport"></main>
-
         <footer>
             <div class="footer-stat-group">
                 <span id="f-hp">HP 0/0</span>
@@ -391,70 +261,63 @@
             </div>
         </footer>
     </div>
-    
-    <!-- Interaction nodes for physical chassis feel -->
-    <div class="btn-power" title="Power Toggle" onclick="ui.togglePower()"></div>
+    <div class="btn-power" onclick="ui.togglePower()"></div>
 </div>
 
 <script>
 /**
- * PIP-BOY 3000 - FULL ENGINE SIMULATION
- * 700+ Line Goal Logic Structure
+ * PIP-BOY 3000 CORE ENGINE
+ * EXTENDED DATA & SIMULATION LOGIC
  */
 
-const CONSTANTS = {
-    MAX_LEVEL: 50,
-    BASE_CARRY_WEIGHT: 150,
-    HP_PER_ENDURANCE: 20,
-    AP_PER_AGILITY: 10
-};
-
-const DATABASE = {
+const DATA_CORE = {
     STAT: {
         tabs: ['CND', 'SPECIAL', 'SKILLS', 'PERKS', 'GENERAL'],
         content: {
             CND: {
-                limbs: { head: 85, la: 62, ra: 95, ll: 40, rl: 75 },
+                limbs: { head: 100, la: 100, ra: 100, ll: 100, rl: 100 },
                 vitals: [
-                    { id: 'rads', label: 'RADS', val: 45, max: 1000 },
-                    { id: 'weight', label: 'WEIGHT', val: 142, max: 250 },
-                    { id: 'xp', label: 'EXPERIENCE', val: 12450, max: 15000 }
+                    { label: 'RADS', val: 12, max: 1000 },
+                    { label: 'WEIGHT', val: 185, max: 250 },
+                    { label: 'TEMP', val: 98, max: 110 }
                 ]
             },
             SPECIAL: [
-                { id: 'S', name: 'STRENGTH', val: 7, desc: 'Raw physical power. Affects Melee damage and total Carry Weight.' },
-                { id: 'P', name: 'PERCEPTION', val: 5, desc: 'Environmental awareness. Affects Explosives skill and VATS detection.' },
-                { id: 'E', name: 'ENDURANCE', val: 8, desc: 'Physical fitness. Directly determines your total Hit Points and resistances.' },
-                { id: 'C', name: 'CHARISMA', val: 4, desc: 'Diplomatic skill. Influences Barter and Speech success rates.' },
-                { id: 'I', name: 'INTELLIGENCE', val: 9, desc: 'Mental acuity. Affects the number of skill points gained per level.' },
-                { id: 'A', name: 'AGILITY', val: 6, desc: 'Reflexes and speed. Determines total Action Points for VATS.' },
-                { id: 'L', name: 'LUCK', val: 5, desc: 'Fortune. Slightly improves all skills and critical hit chances.' }
+                { id: 'S', name: 'STRENGTH', val: 7, desc: 'A measure of your raw physical power. It affects how much you can carry, and the damage of all melee attacks.' },
+                { id: 'P', name: 'PERCEPTION', val: 8, desc: 'A sensing ability that affects weapon accuracy in V.A.T.S. and your awareness of environmental threats.' },
+                { id: 'E', name: 'ENDURANCE', val: 6, desc: 'A measure of your overall physical fitness. It affects your total Hit Points and resistances.' },
+                { id: 'C', name: 'CHARISMA', val: 9, desc: 'Your ability to charm and convince others. It affects your success in speech and barter.' },
+                { id: 'I', name: 'INTELLIGENCE', val: 10, desc: 'A measure of your overall mental acuity. Affects the number of Skill Points you earn per level.' },
+                { id: 'A', name: 'AGILITY', val: 7, desc: 'A measure of your overall finesse and reflexes. It affects the number of Action Points available.' },
+                { id: 'L', name: 'LUCK', val: 6, desc: 'Luck affects everything you do, from critical hits to finding better loot in containers.' }
             ],
             SKILLS: [
-                { name: 'BARTER', val: 32, icon: '💰' },
-                { name: 'ENERGY WEAPONS', val: 85, icon: '🔋' },
-                { name: 'EXPLOSIVES', val: 44, icon: '🧨' },
-                { name: 'LOCKPICK', val: 75, icon: '🔑' },
-                { name: 'MEDICINE', val: 60, icon: '💉' },
-                { name: 'MELEE WEAPONS', val: 20, icon: '🔪' },
-                { name: 'REPAIR', val: 92, icon: '🔧' },
-                { name: 'SCIENCE', val: 100, icon: '💻' },
-                { name: 'SMALL GUNS', val: 55, icon: '🔫' },
-                { name: 'SNEAK', val: 30, icon: '👣' },
-                { name: 'SPEECH', val: 40, icon: '🗣️' }
+                { name: 'BARTER', val: 45, info: 'Prices for items.' },
+                { name: 'ENERGY WEAPONS', val: 82, info: 'Damage with laser/plasma.' },
+                { name: 'EXPLOSIVES', val: 30, info: 'Grenade damage/defusal.' },
+                { name: 'LOCKPICK', val: 75, info: 'Opening locked doors.' },
+                { name: 'MEDICINE', val: 60, info: 'Stimpak effectiveness.' },
+                { name: 'MELEE WEAPONS', val: 40, info: 'Close quarters combat.' },
+                { name: 'REPAIR', val: 90, info: 'Maintain equipment.' },
+                { name: 'SCIENCE', val: 100, info: 'Terminal hacking proficiency.' },
+                { name: 'SMALL GUNS', val: 95, info: 'Pistol and rifle accuracy.' },
+                { name: 'SNEAK', val: 88, info: 'Stealth effectiveness.' },
+                { name: 'SPEECH', val: 70, info: 'Influencing dialogue.' }
             ],
             PERKS: [
-                { name: 'ACTION BOY', rank: 2, desc: 'Action Points regenerate 50% faster than standard.' },
-                { name: 'BLOODY MESS', rank: 1, desc: '+5% overall damage and spectacular combat finishes.' },
-                { name: 'CYBORG', rank: 1, desc: '+10% Energy Weapon skill, +10% Poison and Rad resistance.' },
-                { name: 'GRIM REAPER', rank: 1, desc: 'Restores all AP immediately upon a successful VATS kill.' }
+                { name: 'ACTION BOY', rank: 2, desc: 'Your AP regenerates 50% faster than before.' },
+                { name: 'BLOODY MESS', rank: 1, desc: 'Spectacular combat deaths and +5% overall damage.' },
+                { name: 'COMMANDO', rank: 2, desc: 'Accuracy with two-handed weapons in V.A.T.S. is increased by 25%.' },
+                { name: 'GRIM REAPER', rank: 1, desc: 'A kill in V.A.T.S. restores all Action Points.' },
+                { name: 'HACKER', rank: 3, desc: 'You can break into even the most secure Master Terminals.' },
+                { name: 'SCROUNGER', rank: 2, desc: 'You find considerably more ammunition in containers.' }
             ],
             GENERAL: [
-                { label: 'Kills', val: 1240 },
-                { label: 'Locks Picked', val: 88 },
-                { label: 'Terminals Hacked', val: 42 },
-                { label: 'Stimpacks Used', val: 215 },
-                { label: 'Days Passed', val: 124 }
+                { label: 'KILLS', val: '4,102' },
+                { label: 'LOCATIONS', val: '215' },
+                { label: 'LOCKS PICKED', val: '412' },
+                { label: 'CRITICAL HITS', val: '822' },
+                { label: 'KARMA', val: 'WANDERER' }
             ]
         }
     },
@@ -462,59 +325,55 @@ const DATABASE = {
         tabs: ['WEAPONS', 'APPAREL', 'AID', 'MISC', 'AMMO'],
         content: {
             WEAPONS: [
-                { id: 'w1', name: '10MM PISTOL', dam: 18, wt: 3, cnd: 85, desc: 'Standard pre-war sidearm. Reliable and common.' },
-                { id: 'w2', name: 'PLASMA RIFLE', dam: 45, wt: 12, cnd: 40, desc: 'Urban Combat Works design. Fires superheated bolts of plasma.' },
-                { id: 'w3', name: 'COMBAT SHOTGUN', dam: 55, wt: 9, cnd: 95, desc: 'Close-quarters devastating power.' },
-                { id: 'w4', name: 'LASER PISTOL', dam: 12, wt: 2, cnd: 20, desc: 'Compact energy weapon. Low damage, high fire rate.' }
+                { name: '10MM PISTOL', dam: 22, wt: 3, val: 350, desc: 'A reliable, standard-issue sidearm for any wasteland explorer.' },
+                { name: 'GAUSS RIFLE', dam: 115, wt: 14, val: 3200, desc: 'An advanced electromagnetic weapon with high penetration.' },
+                { name: 'LASER RIFLE', dam: 48, wt: 9, val: 1800, desc: 'AER9 model. Standard energy weapon for the Brotherhood.' },
+                { name: 'COMBAT KNIFE', dam: 12, wt: 1, val: 45, desc: 'A sharp, serrated blade for stealthy kills.' },
+                { name: 'FAT MAN', dam: 450, wt: 30, val: 5000, desc: 'Experimental nuclear catapult. Use with extreme caution.' }
             ],
             APPAREL: [
-                { id: 'a1', name: 'VAULT 111 SUIT', dr: 5, wt: 2, desc: 'Insulated jumpsuit with integrated biometric sensors.' },
-                { id: 'a2', name: 'COMBAT ARMOR', dr: 25, wt: 15, desc: 'Reinforced polymer plates for battlefield protection.' },
-                { id: 'a3', name: 'POWER ARMOR T-45', dr: 50, wt: 40, desc: 'Requires Fusion Core. The peak of pre-war defensive tech.' }
+                { name: 'VAULT 111 SUIT', dr: 10, wt: 2, val: 50, desc: 'Insulated, rubberized suit from your home vault.' },
+                { name: 'COMBAT ARMOR', dr: 35, wt: 18, val: 850, desc: 'Standard pre-war military infantry protection.' },
+                { name: 'POWER ARMOR T-51', dr: 60, wt: 45, val: 4500, desc: 'Highly advanced protection. Requires Fusion Core.' }
             ],
             AID: [
-                { id: 'stimpak', name: 'STIMPAK', count: 8, heal: 90, type: 'HP', desc: 'Auto-injecting medicine that heals 30% of total health.' },
-                { id: 'water', name: 'PURIFIED WATER', count: 14, heal: 25, type: 'HP', desc: 'Safe drinking water. Free of radioactive contaminants.' },
-                { id: 'radaway', name: 'RADAWAY', count: 4, heal: -150, type: 'RADS', desc: 'Chemical solution that bonds to and flushes radiation.' },
-                { id: 'food', name: 'BLAMCO MAC', count: 3, heal: 10, type: 'HP', desc: 'Pre-war preserved pasta. Salty but filling.' }
+                { name: 'STIMPAK (24)', val: 'HEAL', wt: 0, desc: 'Medical injection that restores 30% of total HP.' },
+                { name: 'RADAWAY (15)', val: 'RADS', wt: 1, desc: 'Chemical solution that flushes radiation from the blood.' },
+                { name: 'PURIFIED WATER', val: 'HP+', wt: 1, desc: 'Clean, safe drinking water.' }
             ],
             MISC: [
-                { id: 'm1', name: 'BOBBY PIN', count: 142, desc: 'Used to bypass standard mechanical locks.' },
-                { id: 'm2', name: 'BOTTLECAP', count: 12450, desc: 'The universal currency of the wasteland.' },
-                { id: 'm3', name: 'HOLOTAPE: LOG 42', count: 1, desc: 'An unplayed audio log from a nearby bunker.' }
+                { name: 'BOBBY PIN (88)', val: 'TOOL', wt: 0 },
+                { name: 'BOTTLECAP (24510)', val: 'CURR', wt: 0 },
+                { name: 'HOLOTAPE - LOG 1', val: 'DATA', wt: 0.1 }
             ],
             AMMO: [
-                { name: '10MM ROUND', count: 450, wt: 0.1 },
-                { name: 'MICROFUSION CELL', count: 125, wt: 0.05 },
-                { name: 'SHOTGUN SHELL', count: 88, wt: 0.2 }
+                { name: '10MM ROUND', val: '1,420', wt: 0.01 },
+                { name: 'MF CELL', val: '645', wt: 0.02 },
+                { name: 'MINI NUKE', val: '4', wt: 2.0 }
             ]
         }
     },
     DATA: {
-        tabs: ['QUESTS', 'MAP', 'RADIO', 'LOGS'],
+        tabs: ['QUESTS', 'MAP', 'RADIO'],
         content: {
             QUESTS: [
-                { name: 'THE BIG SEARCH', status: 'ACTIVE', desc: 'Search the ruins of Boston for the missing settlement leader.' },
-                { name: 'POWERING UP', status: 'COMPLETED', desc: 'Restore power to the local radio transmitter.' },
-                { name: 'RAIDER REVENGE', status: 'FAILED', desc: 'Failed to protect the caravan from the ambush.' }
+                { name: 'THE BIG SEARCH', status: 'ACTIVE', desc: 'The settlers at Sanctuary are missing. Search the local ruins for clues.' },
+                { name: 'OUT OF TIME', status: 'COMPLETED', desc: 'You have finally left the Vault. The world has changed.' },
+                { name: 'RAIDER TROUBLES', status: 'FAILED', desc: 'Defend the farm from the raiding party.' }
             ],
             MAP: {
-                loc: 'COMMONWEALTH SECTOR 7',
+                loc: 'COMMONWEALTH RUINS',
+                pos: 'SECTOR 7-G',
                 markers: [
-                    { name: 'HOME BASE', x: 20, y: 30 },
-                    { name: 'RED ROCKET', x: 55, y: 45 },
-                    { name: 'DIAMOND CITY', x: 80, y: 75 },
-                    { name: 'CONCORD', x: 10, y: 15 }
+                    { name: 'SANCTUARY', x: 20, y: 30 },
+                    { name: 'RED ROCKET', x: 45, y: 55 },
+                    { name: 'CONCORD', x: 70, y: 80 }
                 ]
             },
             RADIO: [
-                { name: 'DIAMOND CITY RADIO', freq: '98.5', song: 'Maybe - The Ink Spots' },
-                { name: 'CLASSICAL STATION', freq: '102.1', song: 'Ride of the Valkyries' },
-                { name: 'EMERGENCY BEACON', freq: '88.1', song: '[STATIC]' }
-            ],
-            LOGS: [
-                { name: 'SURVIVOR NOTE 1', text: 'Day 12: Water is running low. Need to find a filter.' },
-                { name: 'SECURITY LOG', text: 'Unauthorized access detected in Sector 4.' }
+                { name: 'DIAMOND CITY RADIO', status: 'ON', song: 'Maybe' },
+                { name: 'CLASSICAL RADIO', status: 'OFF', song: 'Symphony No. 5' },
+                { name: 'ENCLAVE RADIO', status: 'OFF', song: 'Battle Hymn' }
             ]
         }
     }
@@ -524,66 +383,49 @@ const ui = {
     currentTab: 'STAT',
     currentSub: 'CND',
     isPowerOn: true,
-    mapPos: { x: 0, y: 0 },
-    player: {
-        hp: 145,
-        maxHp: 300,
-        ap: 85,
-        maxAp: 110,
-        lvl: 42,
-        rads: 120
-    },
+    playerStats: { hp: 285, maxHp: 300, ap: 110, maxAp: 110 },
 
-    /** Initial startup sequence */
     init() {
-        console.log("Initializing Pip-Boy 3000 Engine...");
-        this.applyDynamicStats();
+        this.randomizeHealth();
         this.renderSubNav();
         this.renderContent();
-        this.updateFooter();
-        this.startBioSim();
-        this.initHardwareInteractions();
+        this.startGlitches();
+        window.addEventListener('resize', () => this.autoScale());
+        this.autoScale();
     },
 
-    /** Calculate stats based on SPECIAL attributes */
-    applyDynamicStats() {
-        const strength = DATABASE.STAT.content.SPECIAL.find(s => s.id === 'S').val;
-        const endurance = DATABASE.STAT.content.SPECIAL.find(s => s.id === 'E').val;
-        const agility = DATABASE.STAT.content.SPECIAL.find(s => s.id === 'A').val;
-
-        this.player.maxHp = 100 + (endurance * CONSTANTS.HP_PER_ENDURANCE);
-        this.player.maxAp = 50 + (agility * CONSTANTS.AP_PER_AGILITY);
-        
-        const weightStat = DATABASE.STAT.content.CND.vitals.find(v => v.id === 'weight');
-        weightStat.max = CONSTANTS.BASE_CARRY_WEIGHT + (strength * 10);
+    randomizeHealth() {
+        this.playerStats.hp = Math.floor(Math.random() * (this.playerStats.maxHp - 50)) + 50;
+        const limbs = DATA_CORE.STAT.content.CND.limbs;
+        Object.keys(limbs).forEach(key => {
+            limbs[key] = Math.floor(Math.random() * 80) + 20;
+        });
+        document.getElementById('f-hp').innerText = `HP ${this.playerStats.hp}/${this.playerStats.maxHp}`;
     },
 
-    /** Global Footer update */
-    updateFooter() {
-        document.getElementById('f-hp').innerText = `HP ${Math.round(this.player.hp)}/${this.player.maxHp}`;
-        document.getElementById('f-ap').innerText = `AP ${this.player.ap}/${this.player.maxAp}`;
-        document.getElementById('f-lvl').innerText = `LEVEL ${this.player.lvl}`;
-        
-        const status = document.getElementById('system-status');
-        if (this.player.hp < (this.player.maxHp * 0.3)) {
-            status.innerText = "CRITICAL CONDITION";
-            status.style.color = "#ff4444";
-        } else {
-            status.innerText = "SYSTEMS STABLE";
-            status.style.color = "var(--pip-green)";
+    autoScale() {
+        const chassis = document.getElementById('pip-chassis');
+        const scale = Math.min(window.innerWidth / 950, window.innerHeight / 720);
+        chassis.style.transform = scale < 1 ? `scale(${scale})` : `scale(1)`;
+    },
+
+    togglePower() {
+        this.isPowerOn = !this.isPowerOn;
+        document.getElementById('pip-chassis').classList.toggle('off', !this.isPowerOn);
+        if (this.isPowerOn) {
+            this.randomizeHealth();
+            this.triggerFlicker(400);
+            this.renderContent();
         }
     },
 
-    /** Navigation Handlers */
     changeMainTab(tab, el) {
         if (!this.isPowerOn) return;
         this.currentTab = tab;
-        this.currentSub = DATABASE[tab].tabs[0];
-        
+        this.currentSub = DATA_CORE[tab].tabs[0];
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-        
-        this.triggerFlicker(120);
+        this.triggerFlicker(100);
         this.renderSubNav();
         this.renderContent();
     },
@@ -591,17 +433,15 @@ const ui = {
     changeSubTab(sub, el) {
         if (!this.isPowerOn) return;
         this.currentSub = sub;
-        
         document.querySelectorAll('.sub-tab').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-        
         this.renderContent();
     },
 
     renderSubNav() {
         const container = document.getElementById('sub-nav');
         container.innerHTML = '';
-        DATABASE[this.currentTab].tabs.forEach(tab => {
+        DATA_CORE[this.currentTab].tabs.forEach(tab => {
             const div = document.createElement('div');
             div.className = `sub-tab ${tab === this.currentSub ? 'active' : ''}`;
             div.innerText = tab;
@@ -610,281 +450,161 @@ const ui = {
         });
     },
 
-    /** Main Content Switcher */
     renderContent() {
         const viewport = document.getElementById('viewport');
         viewport.innerHTML = '';
         const wrapper = document.createElement('div');
         wrapper.className = 'tab-transition';
         
-        const data = DATABASE[this.currentTab].content[this.currentSub];
+        const data = DATA_CORE[this.currentTab].content[this.currentSub];
 
         switch(this.currentSub) {
-            case 'CND': wrapper.innerHTML = this.getConditionView(); break;
-            case 'MAP': wrapper.innerHTML = this.getMapView(data); break;
-            case 'RADIO': wrapper.innerHTML = this.getRadioView(data); break;
-            case 'SPECIAL': wrapper.innerHTML = this.getListView(data, 'SPECIAL'); break;
-            case 'SKILLS': wrapper.innerHTML = this.getListView(data, 'SKILLS'); break;
-            case 'PERKS': wrapper.innerHTML = this.getListView(data, 'PERKS'); break;
-            case 'WEAPONS': wrapper.innerHTML = this.getListView(data, 'WEAPONS'); break;
-            case 'APPAREL': wrapper.innerHTML = this.getListView(data, 'APPAREL'); break;
-            case 'AID': wrapper.innerHTML = this.getListView(data, 'AID'); break;
-            case 'MISC': wrapper.innerHTML = this.getListView(data, 'MISC'); break;
-            case 'AMMO': wrapper.innerHTML = this.getListView(data, 'AMMO'); break;
-            case 'QUESTS': wrapper.innerHTML = this.getListView(data, 'QUESTS'); break;
-            default: wrapper.innerHTML = `<div style="padding:20px;">NO DATA MODULE FOUND FOR: ${this.currentSub}</div>`;
+            case 'CND': wrapper.innerHTML = this.getConditionHTML(data); break;
+            case 'MAP': wrapper.innerHTML = this.getMapHTML(data); break;
+            case 'RADIO': wrapper.innerHTML = this.getRadioHTML(data); break;
+            default: wrapper.innerHTML = this.getListHTML(data);
         }
 
         viewport.appendChild(wrapper);
-        this.attachListListeners();
+        this.initListEvents();
     },
 
-    /** CND Sub-tab Module */
-    getConditionView() {
-        const data = DATABASE.STAT.content.CND;
-        const limbs = data.limbs;
+    getConditionHTML(data) {
+        const isHurt = Object.values(data.limbs).some(v => v < 50) || this.playerStats.hp < 100;
+        const img = isHurt ? 'assets/screen/vbbrokenarm.png' : 'assets/screen/vbnormal.png';
         
-        const marker = (id, val, cls) => {
-            const color = val < 40 ? '#ff4444' : (val < 70 ? '#ffcc00' : 'var(--pip-green)');
-            return `<div class="limb-indicator ${cls}" style="color:${color}; border-color:${color};">${id} ${val}%</div>`;
+        const limbMarker = (label, val, posClass) => {
+            const color = val < 30 ? '#ff3333' : (val < 60 ? '#ffaa00' : '#1aff80');
+            return `<div class="limb-indicator ${posClass}" style="color: ${color}; border-color: ${color};">${label} ${val}%</div>`;
         };
 
         return `
             <div class="condition-layout">
                 <div class="vault-boy-visual">
-                    <img src="https://i.imgur.com/7K6xH9A.png" class="vault-boy-img">
-                    ${marker('HD', limbs.head, 'limb-head')}
-                    ${marker('LA', limbs.la, 'limb-la')}
-                    ${marker('RA', limbs.ra, 'limb-ra')}
-                    ${marker('LL', limbs.ll, 'limb-ll')}
-                    ${marker('RL', limbs.rl, 'limb-rl')}
+                    <img src="${img}" class="vault-boy-img">
+                    ${limbMarker('HEAD', data.limbs.head, 'limb-head')}
+                    ${limbMarker('L.ARM', data.limbs.la, 'limb-la')}
+                    ${limbMarker('R.ARM', data.limbs.ra, 'limb-ra')}
+                    ${limbMarker('L.LEG', data.limbs.ll, 'limb-ll')}
+                    ${limbMarker('R.LEG', data.limbs.rl, 'limb-rl')}
                 </div>
                 <div class="vital-stats">
-                    <div class="progress-bar-wrap">
-                        <div class="pb-label"><span>HEALTH</span><span>${Math.round(this.player.hp)}/${this.player.maxHp}</span></div>
-                        <div class="pb-outer"><div class="pb-inner" style="width: ${(this.player.hp/this.player.maxHp)*100}%"></div></div>
-                    </div>
                     ${data.vitals.map(v => `
                         <div class="progress-bar-wrap">
                             <div class="pb-label"><span>${v.label}</span><span>${v.val}/${v.max}</span></div>
                             <div class="pb-outer"><div class="pb-inner" style="width: ${(v.val/v.max)*100}%"></div></div>
                         </div>
                     `).join('')}
-                    <div style="font-size:0.65rem; margin-top:10px; opacity:0.7;">
-                        RADIATION: ${this.player.rads} RADS<br>
-                        STATUS: ${this.player.hp > 100 ? 'NOMINAL' : 'INJURED'}
+                    <div style="font-size:0.7rem; margin-top:20px; color:var(--pip-green-med);">
+                        BIOMETRIC SCAN: ACTIVE<br>STATUS: ${this.playerStats.hp < 100 ? 'CRITICAL' : 'STABLE'}
                     </div>
                 </div>
             </div>
         `;
     },
 
-    /** MAP Sub-tab Module */
-    getMapView(data) {
-        return `
-            <div class="map-viewport" id="map-control">
-                <div class="map-content" id="map-surface">
-                    ${data.markers.map(m => `
-                        <div class="map-marker" style="top:${m.y}%; left:${m.x}%;"></div>
-                        <div class="map-label" style="top:${m.y}%; left:${m.x}%;">${m.name}</div>
-                    `).join('')}
-                </div>
-                <div style="position:absolute; bottom:10px; right:10px; font-size:0.7rem; background:black; padding:4px; border:1px solid var(--pip-green);">
-                    ${data.loc}
-                </div>
-            </div>
-            <div style="font-size:0.6rem; margin-top:5px; text-align:center;">USE ARROW KEYS OR CLICK TO PAN MAP (SIMULATED)</div>
-        `;
-    },
-
-    /** RADIO Sub-tab Module */
-    getRadioView(data) {
+    getListHTML(items) {
+        if (!items) return "NO DATA";
         return `
             <div class="list-container">
                 <div class="scroll-list">
-                    ${data.map((r, i) => `
-                        <div class="list-entry ${i===0?'selected':''}" data-idx="${i}">
-                            <span>${r.name}</span>
-                            <span>${r.freq}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="info-panel">
-                    <div class="detail-box">
-                        <h3>SIGNAL ANALYSIS</h3>
-                        <div style="display:flex; height:60px; align-items:flex-end; gap:3px; margin:10px 0;">
-                            ${Array(12).fill(0).map(() => `<div style="flex:1; background:var(--pip-green); height:${Math.random()*100}%; animation: heavy-flicker-anim 0.2s infinite alternate;"></div>`).join('')}
-                        </div>
-                        <p id="radio-detail">TUNED TO: ${data[0].name}<br>BROADCASTING: ${data[0].song}</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    },
-
-    /** Generic List Module */
-    getListView(items, category) {
-        if (!items || items.length === 0) return `<div style="padding:20px;">EMPTY DATASET</div>`;
-        return `
-            <div class="list-container">
-                <div class="scroll-list">
-                    ${items.map((item, i) => `
-                        <div class="list-entry ${i===0?'selected':''}" data-idx="${i}" data-cat="${category}">
-                            <span>${item.name || item.label} ${item.count ? '('+item.count+')' : ''}</span>
-                            <span>${item.val || item.dam || item.dr || item.status || ''}</span>
+                    ${items.map((item, idx) => `
+                        <div class="list-entry ${idx === 0 ? 'selected' : ''}" data-idx="${idx}">
+                            <span>${item.name || item.label}</span>
+                            <span>${item.val || item.status || (item.rank ? 'RANK '+item.rank : '')}</span>
                         </div>
                     `).join('')}
                 </div>
                 <div class="info-panel">
                     <div class="detail-box" id="detail-pane">
-                        ${this.getDetailHTML(items[0], category)}
+                        ${this.getDetailContent(items[0])}
                     </div>
                 </div>
             </div>
         `;
     },
 
-    /** Detail Pane Logic */
-    getDetailHTML(item, category) {
-        if (!item) return `<h3>NO SELECTION</h3>`;
-        let stats = '';
-        if (item.dam) stats += `<p>DAMAGE: ${item.dam}</p>`;
-        if (item.dr) stats += `<p>DEFENSE: ${item.dr}</p>`;
-        if (item.wt) stats += `<p>WEIGHT: ${item.wt}</p>`;
-        if (item.cnd) {
-            stats += `
-                <div class="progress-bar-wrap">
-                    <div class="pb-label"><span>CONDITION</span><span>${item.cnd}%</span></div>
-                    <div class="pb-outer"><div class="pb-inner" style="width: ${item.cnd}%"></div></div>
-                </div>
-            `;
-        }
-
-        const actionBtn = category === 'AID' 
-            ? `<button class="use-btn" onclick="ui.useItem('${item.id}')" ${item.count <= 0 ? 'disabled' : ''}>CONSUME ITEM</button>` 
-            : '';
-
+    getDetailContent(item) {
+        if (!item) return "SELECT ENTRY";
+        let extra = '';
+        if (item.dam) extra = `<p>DAMAGE: ${item.dam}</p>`;
+        if (item.dr) extra = `<p>DEFENSE: ${item.dr}</p>`;
+        if (item.wt) extra += `<p>WEIGHT: ${item.wt}</p>`;
+        
         return `
             <h3>${item.name || item.label}</h3>
-            ${stats}
-            <div style="margin-top:10px; border-top:1px solid var(--pip-green-dim); padding-top:10px;">
-                ${item.desc || item.info || 'Historical database entry for this asset is currently corrupted or missing.'}
-            </div>
-            <div class="action-area">${actionBtn}</div>
+            ${extra}
+            <p>${item.desc || item.info || 'No further technical data available.'}</p>
         `;
     },
 
-    /** Logic for Medical/Aid consumption */
-    useItem(id) {
-        const items = DATABASE.INV.content.AID;
-        const item = items.find(i => i.id === id);
-        
-        if (item && item.count > 0) {
-            item.count--;
-            
-            if (item.type === 'HP') {
-                const healAmount = item.heal;
-                this.player.hp = Math.min(this.player.maxHp, this.player.hp + healAmount);
-                // Also heal random limb
-                const limbKeys = Object.keys(DATABASE.STAT.content.CND.limbs);
-                const randomLimb = limbKeys[Math.floor(Math.random() * limbKeys.length)];
-                DATABASE.STAT.content.CND.limbs[randomLimb] = Math.min(100, DATABASE.STAT.content.CND.limbs[randomLimb] + 15);
-            } else if (item.type === 'RADS') {
-                this.player.rads = Math.max(0, this.player.rads + item.heal);
-            }
-
-            this.showPopup(`${item.name} USED`);
-            this.triggerFlicker(150);
-            this.updateFooter();
-            this.renderContent();
-        }
+    getMapHTML(data) {
+        return `
+            <div class="map-container">
+                ${data.markers.map(m => `
+                    <div class="map-marker" style="top:${m.y}%; left:${m.x}%;"></div>
+                    <div class="map-label" style="top:${m.y+4}%; left:${m.x+2}%;">${m.name}</div>
+                `).join('')}
+                <div style="position:absolute; bottom:10px; right:10px; font-size:0.7rem; background:black; padding:5px;">
+                    LOCATION: ${data.loc}<br>COORD: ${data.pos}
+                </div>
+            </div>
+        `;
     },
 
-    /** UI Feedback Elements */
-    showPopup(txt) {
-        const p = document.getElementById('msg-popup');
-        p.innerText = txt;
-        p.style.display = 'block';
-        setTimeout(() => p.style.display = 'none', 2000);
+    getRadioHTML(data) {
+        return `
+            <div class="list-container">
+                <div class="scroll-list">
+                    ${data.map((station, idx) => `
+                        <div class="list-entry ${idx === 0 ? 'selected' : ''}" data-idx="${idx}">
+                            <span>${station.name}</span>
+                            <span>${station.status}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="info-panel" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    <div style="font-size:1.2rem; margin-bottom:10px;">SIGNAL STRENGTH</div>
+                    <div class="radio-visualizer">
+                        ${Array(15).fill(0).map(() => `<div class="wave-bar" style="animation-delay: ${Math.random()}s"></div>`).join('')}
+                    </div>
+                    <div style="margin-top:20px; text-align:center;">
+                        NOW PLAYING:<br><span style="color:white;">${data[0].song}</span>
+                    </div>
+                </div>
+            </div>
+        `;
     },
 
-    triggerFlicker(ms) {
-        const screen = document.getElementById('crt-screen');
-        screen.classList.add('flicker-heavy');
-        setTimeout(() => screen.classList.remove('flicker-heavy'), ms);
-    },
-
-    /** List item interaction binder */
-    attachListListeners() {
+    initListEvents() {
         const entries = document.querySelectorAll('.list-entry');
         const detailPane = document.getElementById('detail-pane');
+        const content = DATA_CORE[this.currentTab].content[this.currentSub];
         
         entries.forEach(entry => {
             entry.onclick = () => {
                 entries.forEach(e => e.classList.remove('selected'));
                 entry.classList.add('selected');
-                
                 const idx = entry.getAttribute('data-idx');
-                const cat = entry.getAttribute('data-cat');
-                const data = DATABASE[this.currentTab].content[this.currentSub];
-                
-                if (detailPane) {
-                    detailPane.innerHTML = this.getDetailHTML(data[idx], cat);
-                }
-
-                // Handle Map specific pan simulation
-                if (this.currentSub === 'MAP') {
-                    const surface = document.getElementById('map-surface');
-                    const marker = data.markers[idx];
-                    surface.style.transform = `translate(${-marker.x/2}%, ${-marker.y/2}%)`;
-                }
+                if (detailPane) detailPane.innerHTML = this.getDetailContent(content[idx]);
             };
         });
     },
 
-    /** Hardware Emulation */
-    togglePower() {
-        this.isPowerOn = !this.isPowerOn;
-        const chassis = document.getElementById('pip-chassis');
-        chassis.classList.toggle('off', !this.isPowerOn);
-        
-        if (this.isPowerOn) {
-            this.triggerFlicker(500);
-            this.showPopup("WELCOME BACK, OVERSEER");
-        }
+    triggerFlicker(dur) {
+        const screen = document.getElementById('crt-screen');
+        screen.classList.add('flicker-heavy');
+        setTimeout(() => screen.classList.remove('flicker-heavy'), dur);
     },
 
-    initHardwareInteractions() {
-        // Keyboard shortcuts for the power user feel
-        window.addEventListener('keydown', (e) => {
-            if (!this.isPowerOn) return;
-            if (e.key === '1') this.changeMainTab('STAT', document.getElementById('nav-STAT'));
-            if (e.key === '2') this.changeMainTab('INV', document.getElementById('nav-INV'));
-            if (e.key === '3') this.changeMainTab('DATA', document.getElementById('nav-DATA'));
-        });
-    },
-
-    /** Biometric background simulation (Degrade health slightly over time) */
-    startBioSim() {
+    startGlitches() {
         setInterval(() => {
-            if (this.isPowerOn) {
-                // Occasional minor screen noise
-                if (Math.random() > 0.98) this.triggerFlicker(80);
-                
-                // Natural HP recovery or decay logic could go here
-                // For now, just keep systems updated
-                this.updateFooter();
-            }
-        }, 5000);
+            if (this.isPowerOn && Math.random() > 0.97) this.triggerFlicker(150);
+        }, 2500);
     }
 };
 
-/** Entry Point */
-window.onload = () => {
-    // Artificial delay for 'boot up' feel
-    setTimeout(() => ui.init(), 100);
-};
-
+window.onload = () => ui.init();
 </script>
 </body>
 </html>
