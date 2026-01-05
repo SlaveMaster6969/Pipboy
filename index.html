@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pip-Boy Terminal - Low Power</title>
+    <title>Pip-Boy 3000 - Battery Low</title>
     <style>
         :root {
             --pip-green: #1aff80;
             --pip-glow: rgba(26, 255, 128, 0.6);
-            --flicker-speed: 0.1s;
         }
 
         body {
-            background-color: #000;
+            background-color: #050505;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,20 +21,23 @@
             overflow: hidden;
         }
 
+        /* --- THE FIXED BORDER CONTAINER --- */
         .pipboy-module {
             width: 800px;
             height: 600px;
             position: relative;
-            background-size: cover;
-            background-image: url('monitorborder.png');
-            transition: background-image 0.2s ease-in-out;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            /* Keeps the border steady */
+            background-image: url('monitorborder.png'); 
         }
 
         .pipboy-module.off {
             background-image: url('monitorborder-off.png');
         }
 
-        /* SCREEN AREA */
+        /* --- THE ACTUAL SCREEN --- */
         .screen-area {
             position: absolute;
             top: 65px;
@@ -49,81 +51,64 @@
             flex-direction: column;
             color: var(--pip-green);
             text-shadow: 0 0 10px var(--pip-glow);
-            transition: opacity 0.1s ease;
-            
-            /* The Constant Micro-Flicker */
-            animation: micro-flicker 0.2s infinite;
+            z-index: 1;
+            /* Constant micro-flicker */
+            animation: micro-flicker 0.15s infinite;
         }
 
         .off .screen-area {
-            opacity: 0 !important;
-            background-image: url('bg-off.png');
+            display: none; /* Hide screen entirely when off */
         }
 
-        /* RANDOM POWER GLITCH CLASS (Triggered by JS) */
+        /* --- THE GLITCH (Only affects the screen area) --- */
         .power-glitch {
-            animation: malfunction 0.3s steps(2) infinite !important;
-            filter: brightness(0.3) contrast(2);
-            transform: skewX(1deg);
+            animation: malfunction 0.2s steps(2) infinite !important;
+            filter: brightness(0.2) contrast(1.5) sepia(1) hue-rotate(80deg);
         }
 
-        /* SCANLINE */
         .scanline {
             width: 100%;
-            height: 10px;
-            background: rgba(26, 255, 128, 0.05);
+            height: 100%;
             position: absolute;
-            top: -10px;
-            animation: move-down 6s linear infinite;
+            top: 0; left: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 10;
             pointer-events: none;
-            z-index: 5;
         }
 
-        /* NAV & CONTENT */
         nav {
             padding: 20px;
             border-bottom: 2px solid var(--pip-green);
             display: flex;
             gap: 20px;
             font-weight: bold;
-            z-index: 2;
+            background: rgba(0,0,0,0.2);
         }
 
-        .nav-item { cursor: pointer; opacity: 0.7; }
-        .nav-item.active { opacity: 1; text-decoration: underline; }
+        .nav-item { cursor: pointer; opacity: 0.6; transition: 0.2s; }
+        .nav-item:hover { opacity: 1; text-shadow: 0 0 15px var(--pip-green); }
+        .nav-item.active { opacity: 1; border-bottom: 2px solid var(--pip-green); }
 
-        #content {
-            padding: 20px;
-            font-size: 1.2rem;
-            z-index: 2;
-        }
+        #content { padding: 20px; font-size: 1.2rem; }
 
-        /* ANIMATIONS */
-
-        /* 1. Constant subtle shaking/flickering */
+        /* --- ANIMATIONS --- */
         @keyframes micro-flicker {
-            0% { opacity: 0.94; transform: translate(0,0); }
-            20% { opacity: 0.98; transform: translate(-0.5px, 0.5px); }
-            40% { opacity: 0.95; }
-            60% { opacity: 0.99; transform: translate(0.5px, -0.5px); }
-            80% { opacity: 0.96; }
-            100% { opacity: 0.94; }
+            0% { opacity: 0.96; }
+            50% { opacity: 1; }
+            100% { opacity: 0.97; }
         }
 
-        /* 2. Severe Power Struggle Glitch */
         @keyframes malfunction {
-            0% { opacity: 0.1; }
-            50% { opacity: 0.5; transform: scaleY(0.99); }
-            100% { opacity: 0.2; }
+            0% { opacity: 0.3; transform: translateX(-2px); }
+            50% { opacity: 0.1; transform: translateX(4px) scaleY(0.9); }
+            100% { opacity: 0.4; transform: translateX(0); }
         }
 
-        @keyframes move-down {
-            to { top: 100%; }
-        }
-
+        /* Power Button Click Area */
         .power-btn {
             position: absolute;
-            bottom: 40px;
+            bottom: 45px;
             right: 125px;
             width: 60px;
             height: 60px;
@@ -144,6 +129,7 @@
         </nav>
         <div id="content"></div>
     </div>
+    
     <div class="power-btn" onclick="togglePower()"></div>
 </div>
 
@@ -154,29 +140,10 @@
     const pipboy = document.getElementById('pipboy');
 
     const data = {
-        STAT: "HP 100/100<br>LVL 24<br>CONDITION: CRITICAL",
-        INV: "• Rusted Pipe Pistol<br>• Empty Nuka-Cola Bottle<br>• Fission Battery (DEAD)",
-        DATA: "QUESTS:<br>> Find a Power Source<br>> Repair Pip-Boy"
+        STAT: "<b>CONDITION</b><br><br>HP [||||||----]<br>AP [||||||||||]<br><br>BATTERY: 4% (WARNING)",
+        INV: "<b>WEAPONS</b><br>• Laser Pistol<br>• Combat Knife<br><br><b>AID</b><br>• Purified Water",
+        DATA: "<b>LOCATION: VAULT 101</b><br><br>> Escape!<br>> Find Dad"
     };
-
-    // --- RANDOM GLITCH LOGIC ---
-    // This function triggers the "Power Struggle" flicker at random intervals
-    function triggerRandomGlitch() {
-        if (!isPoweredOn) return;
-
-        // 10% chance to glitch every 2 seconds
-        if (Math.random() > 0.85) {
-            screen.classList.add('power-glitch');
-            
-            // Glitch lasts for 150ms to 500ms
-            setTimeout(() => {
-                screen.classList.remove('power-glitch');
-            }, Math.random() * 400 + 150);
-        }
-
-        // Randomly call itself again
-        setTimeout(triggerRandomGlitch, Math.random() * 2000 + 500);
-    }
 
     function setTab(tab) {
         if (!isPoweredOn) return;
@@ -184,6 +151,19 @@
             el.classList.toggle('active', el.innerText === tab);
         });
         contentDiv.innerHTML = data[tab];
+    }
+
+    function triggerRandomGlitch() {
+        if (!isPoweredOn) return;
+
+        // Roughly 15% chance to glitch
+        if (Math.random() > 0.85) {
+            screen.classList.add('power-glitch');
+            setTimeout(() => {
+                screen.classList.remove('power-glitch');
+            }, Math.random() * 300 + 100);
+        }
+        setTimeout(triggerRandomGlitch, Math.random() * 3000 + 500);
     }
 
     function togglePower() {
@@ -195,7 +175,7 @@
         }
     }
 
-    // Initialize
+    // Start
     setTab('STAT');
     triggerRandomGlitch();
 </script>
