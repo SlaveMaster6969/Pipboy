@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pip-Boy 3000 - Battery Low</title>
+    <title>Pip-Boy 3000 - Ultimate Edition</title>
     <style>
         :root {
             --pip-green: #1aff80;
-            --pip-green-dim: rgba(26, 255, 128, 0.2);
-            --pip-glow: rgba(26, 255, 128, 0.5);
+            --pip-green-dim: rgba(26, 255, 128, 0.15);
+            --pip-glow: rgba(26, 255, 128, 0.4);
             --pip-bg: #0b140e;
+            --crt-curve: perspective(1000px) rotateX(2deg) rotateY(-1deg);
         }
 
         * { box-sizing: border-box; }
+
+        @font-face {
+            font-family: 'PipBoyFont';
+            src: local('Courier New');
+        }
 
         body {
             background-color: #050505;
@@ -21,7 +27,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-family: 'PipBoyFont', 'Monaco', 'Consolas', monospace;
             overflow: hidden;
             color: var(--pip-green);
             text-transform: uppercase;
@@ -56,15 +62,28 @@
             display: flex;
             flex-direction: column;
             color: var(--pip-green);
-            text-shadow: 0 0 8px var(--pip-glow);
+            text-shadow: 2px 0 8px var(--pip-glow), -2px 0 8px var(--pip-glow);
             z-index: 1;
-            animation: micro-flicker 0.15s infinite;
-            /* Curved CRT effect */
-            border-radius: 20px;
+            animation: micro-flicker 0.12s infinite;
+            border-radius: 15px;
+            transform: var(--crt-curve);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
         }
 
         .off .screen-area {
             display: none;
+        }
+
+        /* Phosphor Persistence Effect */
+        .screen-area::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: rgba(18, 16, 16, 0.03);
+            opacity: 0;
+            z-index: 20;
+            pointer-events: none;
         }
 
         .scanline {
@@ -72,7 +91,10 @@
             height: 100%;
             position: absolute;
             top: 0; left: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.2) 50%
+            );
             background-size: 100% 4px;
             z-index: 10;
             pointer-events: none;
@@ -80,7 +102,7 @@
 
         /* --- AUTHENTIC TOP NAV --- */
         header {
-            padding: 10px 40px 0 40px;
+            padding: 15px 40px 0 40px;
             z-index: 2;
         }
 
@@ -89,15 +111,16 @@
             justify-content: space-between;
             border-bottom: 3px solid var(--pip-green);
             padding-bottom: 5px;
+            margin-bottom: 5px;
         }
 
         .nav-item {
             cursor: pointer;
             font-weight: 900;
-            opacity: 0.5;
+            opacity: 0.4;
             transition: 0.1s;
-            font-size: 1.4rem;
-            letter-spacing: 2px;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
             user-select: none;
         }
 
@@ -106,57 +129,82 @@
             text-shadow: 0 0 15px var(--pip-green);
         }
 
-        /* Sub-nav bar (CND, RAD, EFF etc) */
+        /* Sub-nav bar */
         .sub-nav {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            padding: 8px 0;
-            font-size: 0.9rem;
-            font-weight: bold;
+            gap: 20px;
+            padding: 5px 0;
+            font-size: 0.85rem;
+            font-weight: 900;
         }
 
         .sub-item {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: pointer;
+            padding: 2px 8px;
+            transition: all 0.1s;
+        }
+
+        .sub-item:hover {
+            opacity: 0.9;
         }
 
         .sub-item.active {
             opacity: 1;
             background: var(--pip-green);
-            color: black;
-            padding: 0 10px;
+            color: #0b140e;
             text-shadow: none;
         }
 
         #content {
             flex-grow: 1;
-            padding: 10px 40px;
+            padding: 5px 40px;
             position: relative;
             z-index: 2;
+            overflow-y: hidden;
         }
 
         footer {
-            padding: 10px 40px;
+            padding: 8px 40px;
             border-top: 2px solid var(--pip-green);
             font-size: 14px;
             font-weight: 900;
             display: flex;
             justify-content: space-between;
             z-index: 2;
+            background: rgba(0,0,0,0.3);
         }
 
-        /* --- STAT SCREEN ELEMENTS --- */
+        /* --- DATA LAYOUTS --- */
+        .list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 10px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 5px;
+            cursor: pointer;
+        }
+
+        .list-item.selected {
+            background: var(--pip-green-dim);
+        }
+
         .status-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.2fr 0.8fr;
             height: 100%;
             align-items: center;
         }
 
         .vault-boy-container {
             position: relative;
-            height: 180px;
+            height: 200px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -164,67 +212,85 @@
 
         .limb-label {
             position: absolute;
-            font-size: 0.8rem;
-            font-weight: bold;
+            font-size: 0.75rem;
+            font-weight: 900;
+            background: black;
+            padding: 0 2px;
         }
 
-        .limb-hd { top: 0; left: 50%; transform: translateX(-50%); }
-        .limb-la { top: 40%; left: 10%; }
-        .limb-ra { top: 40%; right: 10%; }
-        .limb-ll { bottom: 0; left: 20%; }
-        .limb-rl { bottom: 0; right: 20%; }
+        .limb-hd { top: 5%; left: 50%; transform: translateX(-50%); }
+        .limb-la { top: 45%; left: 15%; }
+        .limb-ra { top: 45%; right: 15%; }
+        .limb-ll { bottom: 5%; left: 30%; }
+        .limb-rl { bottom: 5%; right: 30%; }
 
-        .stat-bars {
+        .stat-sidebar {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            justify-content: center;
+            gap: 15px;
+            padding-left: 20px;
+        }
+
+        .stat-row {
+            margin-bottom: 5px;
         }
 
         .bar-label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.8rem;
-            margin-bottom: 2px;
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+            font-weight: 900;
         }
 
         .bar-outer {
             width: 100%;
-            height: 10px;
+            height: 12px;
             border: 1px solid var(--pip-green);
             padding: 1px;
+            background: rgba(0,0,0,0.5);
         }
 
         .bar-inner {
             height: 100%;
             background: var(--pip-green);
+            box-shadow: 0 0 10px var(--pip-green);
         }
 
+        /* --- GENERAL UI --- */
         .low-battery {
-            color: #ff3333;
-            animation: blink 1s infinite;
+            color: #ff4444;
+            animation: blink 1.5s infinite;
+        }
+
+        .details-pane {
+            border: 1px solid var(--pip-green);
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            background: rgba(0,0,0,0.4);
         }
 
         /* --- ANIMATIONS --- */
         @keyframes micro-flicker {
-            0% { opacity: 0.98; }
+            0% { opacity: 0.99; }
             50% { opacity: 1; }
-            100% { opacity: 0.99; }
+            100% { opacity: 0.98; }
         }
 
         @keyframes blink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
+            50% { opacity: 0.3; }
         }
 
         @keyframes flicker-anim {
-            0% { filter: brightness(1.2); opacity: 1; }
-            50% { filter: brightness(0.8); opacity: 0.9; }
-            100% { filter: brightness(1); opacity: 1; }
+            0% { filter: brightness(1.3); }
+            50% { filter: brightness(0.7); }
+            100% { filter: brightness(1); }
         }
 
         .screen-flicker {
-            animation: flicker-anim 0.1s steps(2) infinite !important;
+            animation: flicker-anim 0.08s steps(2) infinite !important;
         }
 
         /* Power Button Click Area */
@@ -237,6 +303,9 @@
             cursor: pointer;
             z-index: 100;
         }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--pip-green); }
     </style>
 </head>
 <body>
@@ -251,19 +320,15 @@
                 <div class="nav-item" onclick="setMainTab('INV', this)">INV</div>
                 <div class="nav-item" onclick="setMainTab('DATA', this)">DATA</div>
             </div>
-            <div class="sub-nav" id="sub-nav-container">
-                <!-- Sub tabs injected here -->
-            </div>
+            <div class="sub-nav" id="sub-nav-container"></div>
         </header>
 
-        <div id="content">
-            <!-- Content Injected Here -->
-        </div>
+        <div id="content"></div>
 
         <footer>
-            <span id="footer-left">HP 92/100</span>
-            <span id="footer-center">LEVEL 12</span>
-            <span id="footer-right" class="low-battery">BATTERY 3%</span>
+            <span id="footer-left">HP 185/200</span>
+            <span id="footer-center">LEVEL 24</span>
+            <span id="footer-right" class="low-battery">BATTERY 2%</span>
         </footer>
     </div>
     
@@ -284,6 +349,7 @@
         DATA: ['QUESTS', 'MAP', 'RADIO']
     };
 
+    // Deep data structures for a rich UI
     const views = {
         CND: `
             <div class="status-layout">
@@ -293,44 +359,108 @@
                     <div class="limb-label limb-ra">RA</div>
                     <div class="limb-label limb-ll">LL</div>
                     <div class="limb-label limb-rl">RL</div>
-                    <svg width="120" height="150" viewBox="0 0 100 120">
-                        <!-- Vault Boy Placeholder Silhouette -->
+                    <svg width="140" height="180" viewBox="0 0 100 120">
                         <path d="M50 10 C60 10 65 20 65 30 C65 40 60 45 50 45 C40 45 35 40 35 30 C35 20 40 10 50 10" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
-                        <path d="M50 45 L50 80 M50 50 L30 70 M50 50 L70 70 M50 80 L40 110 M50 80 L60 110" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
+                        <path d="M50 45 L50 85 M50 50 L25 75 M50 50 L75 75 M50 85 L35 115 M50 85 L65 115" fill="none" stroke="var(--pip-green)" stroke-width="2"/>
                     </svg>
                 </div>
-                <div class="stat-bars">
-                    <div>
-                        <div class="bar-label"><span>STR</span><span>8</span></div>
-                        <div class="bar-outer"><div class="bar-inner" style="width: 80%"></div></div>
+                <div class="stat-sidebar">
+                    <div class="stat-row">
+                        <div class="bar-label"><span>GUNS</span><span>75</span></div>
+                        <div class="bar-outer"><div class="bar-inner" style="width: 75%"></div></div>
                     </div>
-                    <div>
-                        <div class="bar-label"><span>END</span><span>6</span></div>
-                        <div class="bar-outer"><div class="bar-inner" style="width: 60%"></div></div>
+                    <div class="stat-row">
+                        <div class="bar-label"><span>ENERGY</span><span>42</span></div>
+                        <div class="bar-outer"><div class="bar-inner" style="width: 42%"></div></div>
                     </div>
-                    <div>
-                        <div class="bar-label"><span>RAD</span><span>0</span></div>
-                        <div class="bar-outer"><div class="bar-inner" style="width: 5%"></div></div>
+                    <div class="stat-row">
+                        <div class="bar-label"><span>RADS</span><span>12</span></div>
+                        <div class="bar-outer"><div class="bar-inner" style="width: 12%"></div></div>
                     </div>
+                </div>
+            </div>
+        `,
+        SPECIAL: `
+            <div class="list-view">
+                <div class="list-item"><span>STRENGTH</span><span>7</span></div>
+                <div class="list-item"><span>PERCEPTION</span><span>6</span></div>
+                <div class="list-item"><span>ENDURANCE</span><span>8</span></div>
+                <div class="list-item"><span>CHARISMA</span><span>4</span></div>
+                <div class="list-item"><span>INTELLIGENCE</span><span>9</span></div>
+                <div class="list-item"><span>AGILITY</span><span>7</span></div>
+                <div class="list-item"><span>LUCK</span><span>5</span></div>
+                <div class="details-pane">
+                    STRENGTH IS A MEASURE OF YOUR RAW PHYSICAL POWER. IT AFFECTS HOW MUCH YOU CAN CARRY, AND THE DAMAGE OF ALL MELEE ATTACKS.
+                </div>
+            </div>
+        `,
+        PERKS: `
+            <div class="list-view">
+                <div class="list-item selected"><span>BLOODY MESS</span><span>RANK 1</span></div>
+                <div class="list-item"><span>TOUGHNESS</span><span>RANK 2</span></div>
+                <div class="list-item"><span>COMMANDO</span><span>RANK 1</span></div>
+                <div class="list-item"><span>HACKER</span><span>RANK 3</span></div>
+                <div class="details-pane">
+                    BLOODY MESS: +5% OVERALL DAMAGE. CHARACTERS AND CREATURES YOU KILL WILL OFTEN EXPLODE INTO A RED, PASTY MESS.
                 </div>
             </div>
         `,
         WEAPONS: `
-            <div style="margin-top:20px">
-                <div style="background:var(--pip-green); color:black; padding: 2px 10px; margin-bottom: 10px;">10MM PISTOL (1)</div>
-                <div style="padding-left: 10px;">
-                    <p>• COMBAT KNIFE</p>
-                    <p>• BASEBALL BAT</p>
-                    <p>• FRAG GRENADE (4)</p>
+            <div class="list-view">
+                <div class="list-item selected"><span>10MM PISTOL</span><span>12 LBS</span></div>
+                <div class="list-item"><span>COMBAT RIFLE</span><span>18 LBS</span></div>
+                <div class="list-item"><span>FRAG GRENADE (6)</span><span>3 LBS</span></div>
+                <div class="list-item"><span>SUPER SLEDGE</span><span>20 LBS</span></div>
+                <div class="details-pane">
+                    DAM: 18 | AMMO: 10MM | WT: 12<br>
+                    A STURDY, RELIABLE HANDGUN. POPULAR WITH SECURITY FORCES.
                 </div>
             </div>
         `,
+        APPAREL: `
+            <div class="list-view">
+                <div class="list-item selected"><span>VAULT 101 JUMPSUIT</span><span>2 LBS</span></div>
+                <div class="list-item"><span>COMBAT ARMOR CHEST</span><span>15 LBS</span></div>
+                <div class="list-item"><span>FORMAL HAT</span><span>1 LB</span></div>
+                <div class="details-pane">
+                    DR: 5 | RAD RESIST: 10<br>
+                    STANDARD ISSUE CLOTHING FOR VAULT RESIDENTS.
+                </div>
+            </div>
+        `,
+        AID: `
+            <div class="list-view">
+                <div class="list-item"><span>STIMPAK (14)</span></div>
+                <div class="list-item"><span>RADAWAY (4)</span></div>
+                <div class="list-item"><span>PURIFIED WATER (8)</span></div>
+                <div class="list-item"><span>MUTFRUIT (2)</span></div>
+            </div>
+        `,
         QUESTS: `
-            <div style="margin-top:20px">
-                <div style="border-bottom: 1px solid var(--pip-green); padding-bottom: 5px; margin-bottom: 15px;">ACTIVE QUESTS</div>
-                <p>> ESCAPE FROM VAULT 101</p>
-                <p style="opacity:0.6; padding-left: 20px;">- FIND THE OVERSEER'S KEY</p>
-                <p style="opacity:0.6; padding-left: 20px;">- ENTER THE MAIN TUNNEL</p>
+            <div class="list-view">
+                <div class="list-item selected"><span>THE POWER OF THE ATOM</span></div>
+                <p style="font-size: 0.75rem; margin-left: 10px; opacity: 0.7;">- DISARM THE BOMB IN MEGATON</p>
+                <div class="list-item"><span>FOLLOWING IN HIS FOOTSTEPS</span></div>
+                <p style="font-size: 0.75rem; margin-left: 10px; opacity: 0.7;">- SEARCH FOR CLUES IN GALAXY NEWS RADIO</p>
+                <div class="list-item"><span>WASTELAND SURVIVAL GUIDE</span></div>
+                <p style="font-size: 0.75rem; margin-left: 10px; opacity: 0.7;">- TRAVEL TO SUPER-DUPER MART</p>
+            </div>
+        `,
+        MAP: `
+            <div style="width:100%; height:180px; border:1px solid var(--pip-green); margin-top:20px; display:flex; align-items:center; justify-content:center; position:relative; background: radial-gradient(circle, var(--pip-green-dim) 0%, transparent 70%);">
+                <span style="font-size: 0.7rem; position:absolute; top:10px; left:10px;">WORLD MAP</span>
+                <div style="width:10px; height:10px; background:var(--pip-green); border-radius:50%; box-shadow: 0 0 10px var(--pip-green);"></div>
+                <span style="font-size:0.8rem; margin-top:30px;">YOU ARE HERE: MEGATON</span>
+            </div>
+        `,
+        RADIO: `
+            <div class="list-view">
+                <div class="list-item selected"><span>GALAXY NEWS RADIO</span></div>
+                <div class="list-item"><span>ENCLAVE RADIO</span></div>
+                <div class="list-item"><span>VAULT 101 SIGNAL</span></div>
+                <div class="details-pane" style="text-align:center;">
+                    NOW PLAYING: "I DON'T WANT TO SET THE WORLD ON FIRE"
+                </div>
             </div>
         `
     };
@@ -338,14 +468,9 @@
     function setMainTab(tab, el) {
         if (!isPoweredOn) return;
         currentMainTab = tab;
-        
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-
-        // Update sub-navigation
         renderSubNav(tab);
-        
-        // Load default sub-tab content
         loadContent(subTabs[tab][0]);
     }
 
@@ -365,10 +490,9 @@
     }
 
     function loadContent(subTab) {
-        contentDiv.innerHTML = views[subTab] || `<div style="margin-top:50px; text-align:center; opacity:0.5;">[ NO DATA FOR ${subTab} ]</div>`;
-        
+        contentDiv.innerHTML = views[subTab] || `<div style="margin-top:50px; text-align:center; opacity:0.3;">[ SYSTEM OFFLINE: ${subTab} ]</div>`;
         screen.classList.add('screen-flicker');
-        setTimeout(() => screen.classList.remove('screen-flicker'), 100);
+        setTimeout(() => screen.classList.remove('screen-flicker'), 120);
     }
 
     function togglePower() {
@@ -384,24 +508,25 @@
             setTimeout(triggerRandomFlicker, 2000);
             return;
         }
-        if (Math.random() > 0.92) {
+        if (Math.random() > 0.94) {
             screen.classList.add('screen-flicker');
-            setTimeout(() => screen.classList.remove('screen-flicker'), Math.random() * 150 + 50);
+            setTimeout(() => screen.classList.remove('screen-flicker'), Math.random() * 100 + 50);
         }
-        setTimeout(triggerRandomFlicker, Math.random() * 4000 + 1000);
+        setTimeout(triggerRandomFlicker, Math.random() * 5000 + 1000);
     }
 
-    // Initialize
-    renderSubNav('STAT');
-    loadContent('CND');
-    triggerRandomFlicker();
-
+    // Dynamic scale for window resizing
     function handleResize() {
         const scale = Math.min(window.innerWidth / 850, window.innerHeight / 650);
         pipboy.style.transform = scale < 1 ? `scale(${scale})` : `scale(1)`;
     }
+
+    // Initialize UI
     window.addEventListener('resize', handleResize);
     handleResize();
+    renderSubNav('STAT');
+    loadContent('CND');
+    triggerRandomFlicker();
 </script>
 
 </body>
