@@ -39,10 +39,6 @@
             text-transform: uppercase;
         }
 
-        body.booting .ui-main {
-            opacity: 0;
-        }
-
         .chassis-outer {
             width: 1000px;
             height: 750px;
@@ -119,6 +115,7 @@
             flex-direction: column;
             transition: opacity 0.4s ease;
             z-index: 50;
+            opacity: 0; /* hidden until boot finishes */
         }
 
         .off .ui-main { opacity: 0; }
@@ -426,6 +423,46 @@
             opacity: 0.8;
         }
 
+        /* HARD CRT POWER-ON */
+        @keyframes crtPowerOn {
+            0% {
+                opacity: 0;
+                transform: scaleY(0.02) scaleX(1.4);
+                filter: brightness(600%);
+            }
+            8% {
+                opacity: 1;
+                transform: scaleY(0.02) scaleX(1.4);
+                filter: brightness(900%);
+            }
+            12% {
+                transform: scaleY(0.1) scaleX(1.1);
+                filter: brightness(300%);
+            }
+            18% {
+                transform: scaleY(0.02) scaleX(1.4);
+                filter: brightness(900%);
+            }
+            25% {
+                transform: scaleY(0.4) scaleX(1.05);
+                filter: brightness(200%);
+            }
+            35% {
+                transform: scaleY(1) scaleX(1);
+                filter: brightness(120%);
+            }
+            45% {
+                opacity: 1;
+                filter: brightness(100%);
+            }
+            60% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
         #boot-screen {
             position: absolute;
             inset: 0;
@@ -440,33 +477,46 @@
             pointer-events: none;
         }
 
-        #boot-screen.active {
-            opacity: 1;
-            animation: crtBoot 3.5s linear forwards;
-        }
-
         #boot-screen pre {
             font-size: 0.9rem;
             line-height: 1.4;
             text-shadow: var(--pip-glow);
         }
 
-        @keyframes crtBoot {
-            0%   { opacity: 0; }
-            5%   { opacity: 1; }
-            10%  { opacity: 0.2; }
-            15%  { opacity: 1; }
-            20%  { opacity: 0.3; }
-            25%  { opacity: 1; }
-            35%  { opacity: 0.4; }
-            45%  { opacity: 1; }
-            60%  { opacity: 0.9; }
-            80%  { opacity: 1; }
-            100% { opacity: 0; }
+        #boot-screen.active {
+            animation: crtPowerOn 3.5s linear forwards;
+        }
+
+        /* Screen shake (vertical 3px, horizontal 1px) */
+        @keyframes screenShake {
+            0% { transform: translate(0,0); }
+            20% { transform: translate(1px, -3px); }
+            40% { transform: translate(-1px, 2px); }
+            60% { transform: translate(1px, 3px); }
+            80% { transform: translate(-1px, -2px); }
+            100% { transform: translate(0,0); }
+        }
+
+        .screen-shake {
+            animation: screenShake 0.25s linear;
+        }
+
+        /* Random flicker */
+        @keyframes crtFlicker {
+            0% { opacity: 1; }
+            10% { opacity: 0.6; }
+            15% { opacity: 1; }
+            22% { opacity: 0.7; }
+            30% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        .crt-flicker {
+            animation: crtFlicker 0.25s linear;
         }
     </style>
 </head>
-<body class="booting">
+<body>
 
 <div class="chassis-outer" id="main-chassis">
     <div class="screw s-tl"></div>
@@ -478,7 +528,7 @@
 
     <div class="screen-container">
         <div id="boot-screen">
-            <pre>
+<pre>
 ************PIP-OS(R) V7.1.0.8**************
 COPYRIGHT 2075 CHRIS & BRANDON(R)
 LOADER V1.1
@@ -487,7 +537,7 @@ EXEC VERSION 41.10
 38911 BYTES FREE
 NO HOLOTAPE FOUND
 LOAD ROM(1): DEITRIX 303
-            </pre>
+</pre>
         </div>
 
         <div class="crt-overlay"></div>
@@ -624,6 +674,7 @@ const engine = {
         this.renderSubTabs();
         this.renderViewport();
         this.startHeartbeat();
+        document.querySelector('.ui-main').style.opacity = 1;
         console.log("Pip-Boy 3000 Mk IV Online.");
     },
 
@@ -909,22 +960,13 @@ const engine = {
         });
 
         radioState.client.on("message", (topic, payload) => {
-            const raw = payload.toString();
-            let text = raw;
-            let from = null;
+            let packet;
+            try { packet = JSON.parse(payload.toString()); }
+            catch { return; }
 
-            try {
-                const packet = JSON.parse(raw);
-                if (packet && packet.text) {
-                    text = packet.text;
-                    from = packet.from || null;
-                }
-            } catch (e) {
-                // plain text from non-Pipboy clients
-            }
+            if (packet.from === radioState.clientId) return;
 
-            if (from && radioState.clientId && from === radioState.clientId) return;
-
+            const text = packet.text;
             this.radioLog(`RX: ${text}`);
 
             const lower = text.toLowerCase();
@@ -982,16 +1024,13 @@ const engine = {
             radioState.username = name;
         }
 
-        const prefix = radioState.username ? `${radioState.username}: ` : '';
-        const text = prefix + raw;
-
         const packet = {
             from: radioState.clientId,
-            text
+            text: `${radioState.username}: ${raw}`
         };
 
         radioState.client.publish(radioState.topic, JSON.stringify(packet));
-        this.radioLog(`TX: ${text}`);
+        this.radioLog(`TX: ${packet.text}`);
         msgInput.value = "";
     },
 
@@ -1016,15 +1055,22 @@ const engine = {
 
 window.onload = () => {
     const boot = document.getElementById('boot-screen');
-    document.body.classList.add('booting');
+    const screen = document.querySelector('.screen-container');
+
     boot.classList.add('active');
 
+    setTimeout(() => screen.classList.add('screen-shake'), 200);
+    setTimeout(() => screen.classList.remove('screen-shake'), 600);
+
     setTimeout(() => {
-        boot.classList.remove('active');
-        document.body.classList.remove('booting');
+        boot.style.display = 'none';
         engine.init();
-        engine.glitchEffect(400);
-    }, 3500);
+    }, 3600);
+
+    setInterval(() => {
+        screen.classList.add('crt-flicker');
+        setTimeout(() => screen.classList.remove('crt-flicker'), 250);
+    }, 10000);
 };
 </script>
 </body>
