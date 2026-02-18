@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pip-Boy 3000 Mk IV - Ultimate Edition</title>
     <style>
-        /* PROFESSIONAL PIP-BOY 3000 STYLING 
-           Designed for High-Fidelity Retro-Futurism
-        */
         :root {
             --pip-green: #1aff80;
             --pip-green-dim: rgba(26, 255, 128, 0.15);
@@ -21,10 +18,10 @@
 
         @font-face {
             font-family: 'PipboyFont';
-            src: local('Courier New'); /* Simulating monospaced terminals */
+            src: local('Courier New');
         }
 
-        * { 
+        * {
             box-sizing: border-box;
             user-select: none;
         }
@@ -42,7 +39,10 @@
             text-transform: uppercase;
         }
 
-        /* --- HARDWARE ENCLOSURE --- */
+        body.booting .ui-main {
+            opacity: 0;
+        }
+
         .chassis-outer {
             width: 1000px;
             height: 750px;
@@ -50,14 +50,13 @@
             background: #1a1a1a;
             border-radius: 40px;
             padding: 40px;
-            box-shadow: 
+            box-shadow:
                 inset 0 0 50px #000,
                 0 30px 60px rgba(0,0,0,0.8),
                 0 0 10px #222;
             border: 4px solid #333;
         }
 
-        /* SCREWS & HARDWARE DETAILS */
         .screw {
             position: absolute;
             width: 20px; height: 20px;
@@ -70,7 +69,6 @@
         .s-bl { bottom: 20px; left: 20px; }
         .s-br { bottom: 20px; right: 20px; }
 
-        /* --- CRT SCREEN DISPLAY --- */
         .screen-container {
             width: 100%;
             height: 100%;
@@ -83,14 +81,13 @@
             transform: var(--crt-curve);
         }
 
-        /* CRT Effects Layer */
         .crt-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: 100;
             background: linear-gradient(
-                var(--scanline-color) 50%, 
+                var(--scanline-color) 50%,
                 transparent 50%
             );
             background-size: 100% 4px;
@@ -113,7 +110,6 @@
             pointer-events: none;
         }
 
-        /* Main UI Wrapper */
         .ui-main {
             position: relative;
             width: 100%;
@@ -121,12 +117,12 @@
             padding: 30px 60px;
             display: flex;
             flex-direction: column;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
+            z-index: 50;
         }
 
         .off .ui-main { opacity: 0; }
 
-        /* --- NAVIGATION --- */
         .header-nav {
             margin-bottom: 20px;
         }
@@ -171,7 +167,6 @@
             color: #000;
         }
 
-        /* --- VIEWPORT CONTENT --- */
         #viewport {
             flex: 1;
             overflow: hidden;
@@ -191,8 +186,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* --- MODULES --- */
-        /* List Module */
         .pip-list {
             border-right: 2px solid var(--pip-green-dim);
             padding-right: 15px;
@@ -213,7 +206,6 @@
             border-left: 5px solid var(--pip-green);
         }
 
-        /* Info Module */
         .pip-info {
             display: flex;
             flex-direction: column;
@@ -233,14 +225,13 @@
             padding-bottom: 5px;
         }
 
-        /* Map Module */
         .world-map {
             width: 100%;
             height: 100%;
             background: #050a05;
             position: relative;
             border: 2px solid var(--pip-green);
-            background-image: 
+            background-image:
                 radial-gradient(circle, var(--pip-green-dim) 1px, transparent 1px);
             background-size: 20px 20px;
         }
@@ -263,7 +254,6 @@
             z-index: 10;
         }
 
-        /* --- STAT BARS --- */
         .stat-bar-container {
             margin-bottom: 15px;
         }
@@ -288,7 +278,6 @@
             transition: width 0.4s ease;
         }
 
-        /* --- FOOTER --- */
         footer {
             height: 60px;
             border-top: 4px solid var(--pip-green);
@@ -303,7 +292,6 @@
             font-weight: bold;
         }
 
-        /* --- HARDWARE CONTROLS --- */
         .power-toggle {
             position: absolute;
             right: -20px;
@@ -326,7 +314,6 @@
             color: #555;
         }
 
-        /* --- VAULT BOY ANIMATIONS --- */
         .vault-boy-frame {
             display: flex;
             justify-content: center;
@@ -340,7 +327,6 @@
             image-rendering: pixelated;
         }
 
-        /* Glitch Effects */
         .glitch-flash {
             animation: flash 0.15s infinite;
         }
@@ -355,7 +341,6 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--pip-green-med); }
 
-        /* RADIO UI */
         .radio-frame {
             height: 100%;
             display: grid;
@@ -441,9 +426,8 @@
             opacity: 0.8;
         }
 
-        /* STARTUP SCREEN */
         #boot-screen {
-            position: fixed;
+            position: absolute;
             inset: 0;
             background: #020502;
             color: var(--pip-green);
@@ -451,7 +435,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #boot-screen.active {
+            opacity: 1;
+            animation: crtBoot 3.5s linear forwards;
         }
 
         #boot-screen pre {
@@ -459,22 +450,23 @@
             line-height: 1.4;
             text-shadow: var(--pip-glow);
         }
+
+        @keyframes crtBoot {
+            0%   { opacity: 0; }
+            5%   { opacity: 1; }
+            10%  { opacity: 0.2; }
+            15%  { opacity: 1; }
+            20%  { opacity: 0.3; }
+            25%  { opacity: 1; }
+            35%  { opacity: 0.4; }
+            45%  { opacity: 1; }
+            60%  { opacity: 0.9; }
+            80%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
-<body>
-
-<div id="boot-screen">
-    <pre>
-************PIP-OS(R) V7.1.0.8**************
-COPYRIGHT 2075 CHRIS & BRANDON(R)
-LOADER V1.1
-EXEC VERSION 41.10
-64k RAM SYSTEM
-38911 BYTES FREE
-NO HOLOTAPE FOUND
-LOAD ROM(1): DEITRIX 303
-    </pre>
-</div>
+<body class="booting">
 
 <div class="chassis-outer" id="main-chassis">
     <div class="screw s-tl"></div>
@@ -485,6 +477,19 @@ LOAD ROM(1): DEITRIX 303
     <div class="power-toggle" onclick="engine.togglePower()"></div>
 
     <div class="screen-container">
+        <div id="boot-screen">
+            <pre>
+************PIP-OS(R) V7.1.0.8**************
+COPYRIGHT 2075 CHRIS & BRANDON(R)
+LOADER V1.1
+EXEC VERSION 41.10
+64k RAM SYSTEM
+38911 BYTES FREE
+NO HOLOTAPE FOUND
+LOAD ROM(1): DEITRIX 303
+            </pre>
+        </div>
+
         <div class="crt-overlay"></div>
         <div class="crt-glow"></div>
         <div class="vignette"></div>
@@ -498,14 +503,10 @@ LOAD ROM(1): DEITRIX 303
                     <span class="tab-btn" id="tab-MAP" onclick="engine.setTab('MAP')">MAP</span>
                     <span class="tab-btn" id="tab-RADIO" onclick="engine.setTab('RADIO')">RADIO</span>
                 </div>
-                <div class="secondary-tabs" id="sub-tabs-container">
-                    <!-- Dynamic Sub Tabs -->
-                </div>
+                <div class="secondary-tabs" id="sub-tabs-container"></div>
             </header>
 
-            <main id="viewport">
-                <!-- Dynamic Content -->
-            </main>
+            <main id="viewport"></main>
 
             <footer>
                 <div class="foot-stat" id="hp-display">HP 185/200</div>
@@ -518,12 +519,6 @@ LOAD ROM(1): DEITRIX 303
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
-/**
- * PIP-BOY 3000 Mk IV CORE ENGINE
- * Author: Professional Front-End Architect
- * Implementation: Vanilla JS, High-Performance DOM Manipulation
- */
-
 const PIP_DATA = {
     STAT: {
         subs: ['CONDITION', 'S.P.E.C.I.A.L.', 'PERKS'],
@@ -604,6 +599,7 @@ const RADIO_TOKEN = "g977bmKI5b1CdmpybeBxi4QfXcrGVva0oUvZc4mb9lhxNkIL3L2pXhIfhI7
 
 const radioState = {
     client: null,
+    clientId: null,
     freq: 94.7,
     topic: "ttg/chat/94/7",
     username: null,
@@ -613,8 +609,8 @@ const radioState = {
 };
 
 function freqToTopic(freq) {
-    const f = Number(freq).toFixed(1); // 94.7
-    const parts = f.split('.');        // ["94","7"]
+    const f = Number(freq).toFixed(1);
+    const parts = f.split('.');
     return `ttg/chat/${parts[0]}/${parts[1]}`;
 }
 
@@ -628,25 +624,21 @@ const engine = {
         this.renderSubTabs();
         this.renderViewport();
         this.startHeartbeat();
-        console.log("Pip-Boy 3000 Mk IV Online. Optimized for Chromium 90+.");
+        console.log("Pip-Boy 3000 Mk IV Online.");
     },
 
     togglePower() {
         this.isPowerOn = !this.isPowerOn;
         const chassis = document.getElementById('main-chassis');
         chassis.classList.toggle('off', !this.isPowerOn);
-        
-        if (this.isPowerOn) {
-            this.glitchEffect(500);
-        }
+        if (this.isPowerOn) this.glitchEffect(500);
     },
 
     setTab(tab) {
         if (!this.isPowerOn) return;
         this.currentTab = tab;
         this.currentSub = PIP_DATA[tab].subs[0];
-        
-        // Update UI
+
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
             if (btn.id === `tab-${tab}`) btn.classList.add('active');
@@ -660,7 +652,7 @@ const engine = {
     setSubTab(sub) {
         if (!this.isPowerOn) return;
         this.currentSub = sub;
-        
+
         document.querySelectorAll('.sub-tab-btn').forEach(btn => {
             btn.classList.remove('active');
             if (btn.innerText === sub) btn.classList.add('active');
@@ -672,7 +664,7 @@ const engine = {
     renderSubTabs() {
         const container = document.getElementById('sub-tabs-container');
         container.innerHTML = '';
-        
+
         PIP_DATA[this.currentTab].subs.forEach(sub => {
             const btn = document.createElement('div');
             btn.className = `sub-tab-btn ${sub === this.currentSub ? 'active' : ''}`;
@@ -687,7 +679,7 @@ const engine = {
         viewport.innerHTML = '';
 
         const data = PIP_DATA[this.currentTab].content[this.currentSub];
-        
+
         if (!data) {
             viewport.innerHTML = `<div class="content-frame">NOT IMPLEMENTED</div>`;
             return;
@@ -719,7 +711,7 @@ const engine = {
             const el = document.createElement('div');
             el.className = `pip-item ${idx === 0 ? 'selected' : ''}`;
             el.innerHTML = `<span>${item.name}</span><span>${item.val}</span>`;
-            
+
             el.onmouseover = () => {
                 document.querySelectorAll('.pip-item').forEach(i => i.classList.remove('selected'));
                 el.classList.add('selected');
@@ -751,7 +743,7 @@ const engine = {
     renderCondition(container, data) {
         const frame = document.createElement('div');
         frame.className = 'content-frame';
-        
+
         frame.innerHTML = `
             <div class="vault-boy-frame">
                 <img src="assets/screen/vbnormal.png" class="vb-img">
@@ -771,9 +763,8 @@ const engine = {
     renderMap(container) {
         const frame = document.createElement('div');
         frame.className = 'world-map';
-        
-        // Add some random icons
-        for(let i=0; i<5; i++) {
+
+        for (let i = 0; i < 5; i++) {
             const icon = document.createElement('div');
             icon.className = 'map-icon';
             icon.style.left = (20 + Math.random() * 60) + '%';
@@ -888,7 +879,7 @@ const engine = {
 
     radioConnect() {
         if (radioState.client) {
-            try { radioState.client.end(); } catch(e) {}
+            try { radioState.client.end(); } catch (e) {}
             radioState.client = null;
         }
 
@@ -899,21 +890,43 @@ const engine = {
         radioState.client = mqtt.connect("wss://mqtt.flespi.io:443", {
             username: RADIO_TOKEN,
             password: "",
-            clean: true
+            clean: true,
+            clientId: "pipboy_" + Math.random().toString(16).slice(2)
         });
 
         radioState.client.on("connect", () => {
             radioState.connected = true;
+            radioState.clientId = radioState.client.options.clientId;
             this.setRadioStatus(`ON AIR ${radioState.freq.toFixed(1)} MHz`);
             radioState.client.subscribe(radioState.topic);
-            const intro = `My name is ${radioState.username}`;
-            radioState.client.publish(radioState.topic, intro);
-            this.radioLog(`TX: ${intro}`);
+
+            const introPacket = {
+                from: radioState.clientId,
+                text: `My name is ${radioState.username}`
+            };
+            radioState.client.publish(radioState.topic, JSON.stringify(introPacket));
+            this.radioLog(`TX: ${introPacket.text}`);
         });
 
         radioState.client.on("message", (topic, payload) => {
-            const text = payload.toString();
+            const raw = payload.toString();
+            let text = raw;
+            let from = null;
+
+            try {
+                const packet = JSON.parse(raw);
+                if (packet && packet.text) {
+                    text = packet.text;
+                    from = packet.from || null;
+                }
+            } catch (e) {
+                // plain text from non-Pipboy clients
+            }
+
+            if (from && radioState.clientId && from === radioState.clientId) return;
+
             this.radioLog(`RX: ${text}`);
+
             const lower = text.toLowerCase();
             if (!radioState.username && lower.startsWith('my name is')) {
                 const name = text.slice(10).trim();
@@ -942,7 +955,7 @@ const engine = {
 
     radioDisconnect() {
         if (radioState.client) {
-            try { radioState.client.end(); } catch(e) {}
+            try { radioState.client.end(); } catch (e) {}
         }
         radioState.client = null;
         radioState.connected = false;
@@ -970,9 +983,15 @@ const engine = {
         }
 
         const prefix = radioState.username ? `${radioState.username}: ` : '';
-        const msg = prefix + raw;
-        radioState.client.publish(radioState.topic, msg);
-        this.radioLog(`TX: ${msg}`);
+        const text = prefix + raw;
+
+        const packet = {
+            from: radioState.clientId,
+            text
+        };
+
+        radioState.client.publish(radioState.topic, JSON.stringify(packet));
+        this.radioLog(`TX: ${text}`);
         msgInput.value = "";
     },
 
@@ -986,7 +1005,7 @@ const engine = {
         setInterval(() => {
             if (!this.isPowerOn) return;
             if (Math.random() > 0.98) this.glitchEffect(50);
-            
+
             if (Math.random() > 0.95) {
                 this.player.hp = Math.min(this.player.maxHp, this.player.hp + (Math.random() > 0.5 ? 1 : -1));
                 document.getElementById('hp-display').innerText = `HP ${this.player.hp}/${this.player.maxHp}`;
@@ -997,9 +1016,14 @@ const engine = {
 
 window.onload = () => {
     const boot = document.getElementById('boot-screen');
+    document.body.classList.add('booting');
+    boot.classList.add('active');
+
     setTimeout(() => {
-        boot.style.display = 'none';
+        boot.classList.remove('active');
+        document.body.classList.remove('booting');
         engine.init();
+        engine.glitchEffect(400);
     }, 3500);
 };
 </script>
