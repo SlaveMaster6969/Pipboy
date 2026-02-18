@@ -1,8 +1,9 @@
+<!DOCTYPE html>
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pip-Boy 3000 Mk IV - Ultimate Edition</title>
-
     <style>
         :root {
             --pip-green: #1aff80;
@@ -12,6 +13,7 @@
             --pip-bg: #0b140e;
             --crt-curve: perspective(1000px) rotateX(1deg) rotateY(-1deg);
             --scanline-color: rgba(18, 16, 16, 0.2);
+            --border-metal: #2c2c2c;
         }
 
         @font-face {
@@ -37,7 +39,6 @@
             text-transform: uppercase;
         }
 
-        /* MAIN CHASSIS */
         .chassis-outer {
             width: 1000px;
             height: 750px;
@@ -64,7 +65,6 @@
         .s-bl { bottom: 20px; left: 20px; }
         .s-br { bottom: 20px; right: 20px; }
 
-        /* CRT SCREEN */
         .screen-container {
             width: 100%;
             height: 100%;
@@ -79,7 +79,7 @@
 
         .crt-overlay {
             position: absolute;
-            inset: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: 100;
             background: linear-gradient(
@@ -92,7 +92,7 @@
 
         .crt-glow {
             position: absolute;
-            inset: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.4) 100%);
             z-index: 101;
             pointer-events: none;
@@ -100,13 +100,12 @@
 
         .vignette {
             position: absolute;
-            inset: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
             box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
             z-index: 102;
             pointer-events: none;
         }
 
-        /* UI MAIN */
         .ui-main {
             position: relative;
             width: 100%;
@@ -116,10 +115,15 @@
             flex-direction: column;
             transition: opacity 0.4s ease;
             z-index: 50;
-            opacity: 0;
+            opacity: 0; /* hidden until boot finishes */
         }
 
-        /* HEADER */
+        .off .ui-main { opacity: 0; }
+
+        .header-nav {
+            margin-bottom: 20px;
+        }
+
         .primary-tabs {
             display: flex;
             justify-content: space-between;
@@ -132,7 +136,7 @@
             font-weight: 900;
             letter-spacing: 6px;
             opacity: 0.4;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
 
         .tab-btn.active {
@@ -160,7 +164,6 @@
             color: #000;
         }
 
-        /* VIEWPORT */
         #viewport {
             flex: 1;
             overflow: hidden;
@@ -180,7 +183,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* LISTS */
         .pip-list {
             border-right: 2px solid var(--pip-green-dim);
             padding-right: 15px;
@@ -214,7 +216,12 @@
             flex: 1;
         }
 
-        /* MAP */
+        .info-card h2 {
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--pip-green-med);
+            padding-bottom: 5px;
+        }
+
         .world-map {
             width: 100%;
             height: 100%;
@@ -244,32 +251,30 @@
             z-index: 10;
         }
 
-        /* RADIO */
-        .radio-frame {
-            height: 100%;
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            gap: 25px;
+        .stat-bar-container {
+            margin-bottom: 15px;
         }
 
-        .radio-right {
+        .stat-label {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .bar-outer {
+            height: 12px;
+            border: 1px solid var(--pip-green);
+            padding: 2px;
+        }
+
+        .bar-inner {
             height: 100%;
-            min-height: 0;
+            background: var(--pip-green);
+            box-shadow: var(--pip-glow);
+            transition: width 0.4s ease;
         }
 
-        .radio-chat {
-            flex: 1 1 auto;
-            min-height: 0;
-            border: 2px solid var(--pip-green);
-            background: rgba(0,0,0,0.8);
-            padding: 8px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-        }
-
-        /* FOOTER */
         footer {
             height: 60px;
             border-top: 4px solid var(--pip-green);
@@ -279,10 +284,190 @@
             padding: 0 10px;
         }
 
-        /* BOOT SCREEN */
+        .foot-stat {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .power-toggle {
+            position: absolute;
+            right: -20px;
+            top: 150px;
+            width: 40px;
+            height: 80px;
+            background: #333;
+            border-radius: 5px;
+            box-shadow: 5px 0 10px #000;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        .power-toggle::after {
+            content: "PWR";
+            position: absolute;
+            top: -25px;
+            left: 5px;
+            font-size: 10px;
+            color: #555;
+        }
+
+        .vault-boy-frame {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 220px;
+        }
+
+        .vb-img {
+            height: 100%;
+            filter: sepia(100%) saturate(300%) hue-rotate(85deg) brightness(1.2);
+            image-rendering: pixelated;
+        }
+
+        .glitch-flash {
+            animation: flash 0.15s infinite;
+        }
+
+        @keyframes flash {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; transform: scale(1.001); }
+            100% { opacity: 0.9; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--pip-green-med); }
+
+        .radio-frame {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 25px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .radio-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .radio-dial-box {
+            border: 2px solid var(--pip-green);
+            padding: 15px;
+            background: rgba(26, 255, 128, 0.05);
+        }
+
+        .radio-label {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .radio-freq-display {
+            font-size: 2.2rem;
+            letter-spacing: 4px;
+            text-shadow: var(--pip-glow);
+        }
+
+        .radio-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .radio-btn-row {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .radio-input {
+            background: #020502;
+            border: 1px solid var(--pip-green);
+            color: var(--pip-green);
+            padding: 4px 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .radio-button {
+            background: #020502;
+            border: 1px solid var(--pip-green);
+            color: var(--pip-green);
+            padding: 4px 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .radio-button:hover {
+            background: var(--pip-green-dim);
+        }
+
+        .radio-right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .radio-chat {
+            flex: 1;
+            border: 2px solid var(--pip-green);
+            background: rgba(0,0,0,0.8);
+            padding: 8px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            max-height: 100%;
+        }
+
+        .radio-status {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* HARD CRT POWER-ON */
+        @keyframes crtPowerOn {
+            0% {
+                opacity: 0;
+                transform: scaleY(0.02) scaleX(1.4);
+                filter: brightness(600%);
+            }
+            8% {
+                opacity: 1;
+                transform: scaleY(0.02) scaleX(1.4);
+                filter: brightness(900%);
+            }
+            12% {
+                transform: scaleY(0.1) scaleX(1.1);
+                filter: brightness(300%);
+            }
+            18% {
+                transform: scaleY(0.02) scaleX(1.4);
+                filter: brightness(900%);
+            }
+            25% {
+                transform: scaleY(0.4) scaleX(1.05);
+                filter: brightness(200%);
+            }
+            35% {
+                transform: scaleY(1) scaleX(1);
+                filter: brightness(120%);
+            }
+            45% {
+                opacity: 1;
+                filter: brightness(100%);
+            }
+            60% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
         #boot-screen {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             background: #020502;
@@ -291,13 +476,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 500;
             opacity: 0;
             pointer-events: none;
-        }
-
-        #boot-screen.active {
-            animation: crtPowerOn 3.5s linear forwards;
         }
 
         #boot-screen pre {
@@ -306,40 +487,11 @@
             text-shadow: var(--pip-glow);
         }
 
-        /* HARD CRT POWER-ON */
-        @keyframes crtPowerOn {
-            0% {
-                opacity: 0;
-                transform: scaleY(0.02) scaleX(1.4);
-                filter: brightness(800%);
-            }
-            6% {
-                opacity: 1;
-                transform: scaleY(0.02) scaleX(1.4);
-                filter: brightness(1200%);
-            }
-            10% {
-                transform: scaleY(0.1) scaleX(1.1);
-                filter: brightness(300%);
-            }
-            16% {
-                transform: scaleY(0.02) scaleX(1.4);
-                filter: brightness(900%);
-            }
-            22% {
-                transform: scaleY(0.4) scaleX(1.05);
-                filter: brightness(200%);
-            }
-            30% {
-                transform: scaleY(1) scaleX(1);
-                filter: brightness(120%);
-            }
-            40% { opacity: 1; }
-            60% { opacity: 0.9; }
-            100% { opacity: 0; }
+        #boot-screen.active {
+            animation: crtPowerOn 3.5s linear forwards;
         }
 
-        /* SCREEN SHAKE */
+        /* Screen shake (vertical 3px, horizontal 1px) */
         @keyframes screenShake {
             0% { transform: translate(0,0); }
             20% { transform: translate(1px, -3px); }
@@ -353,20 +505,18 @@
             animation: screenShake 0.25s linear;
         }
 
-        /* RANDOM FLICKER */
+        /* Random flicker */
         @keyframes crtFlicker {
             0% { opacity: 1; }
-            5% { opacity: 0.4; }
-            7% { opacity: 1; }
-            12% { opacity: 0.6; }
+            10% { opacity: 0.6; }
             15% { opacity: 1; }
-            22% { opacity: 0.5; }
-            25% { opacity: 1; }
+            22% { opacity: 0.7; }
+            30% { opacity: 1; }
             100% { opacity: 1; }
         }
 
         .crt-flicker {
-            animation: crtFlicker 0.35s linear;
+            animation: crtFlicker 0.25s linear;
         }
     </style>
 </head>
@@ -381,8 +531,6 @@
     <div class="power-toggle" onclick="engine.togglePower()"></div>
 
     <div class="screen-container">
-
-        <!-- FULLSCREEN BOOT SCREEN -->
         <div id="boot-screen">
 <pre>
 ************PIP-OS(R) V7.1.0.8**************
@@ -396,14 +544,11 @@ LOAD ROM(1): DEITRIX 303
 </pre>
         </div>
 
-        <!-- CRT EFFECTS -->
         <div class="crt-overlay"></div>
         <div class="crt-glow"></div>
         <div class="vignette"></div>
 
-        <!-- MAIN UI -->
         <div class="ui-main">
-
             <header class="header-nav">
                 <div class="primary-tabs">
                     <span class="tab-btn active" id="tab-STAT" onclick="engine.setTab('STAT')">STAT</span>
@@ -412,7 +557,6 @@ LOAD ROM(1): DEITRIX 303
                     <span class="tab-btn" id="tab-MAP" onclick="engine.setTab('MAP')">MAP</span>
                     <span class="tab-btn" id="tab-RADIO" onclick="engine.setTab('RADIO')">RADIO</span>
                 </div>
-
                 <div class="secondary-tabs" id="sub-tabs-container"></div>
             </header>
 
@@ -423,17 +567,12 @@ LOAD ROM(1): DEITRIX 303
                 <div class="foot-stat" id="level-display">LEVEL 24</div>
                 <div class="foot-stat" id="ap-display">AP 95/95</div>
             </footer>
-
         </div>
     </div>
 </div>
 
-<!-- MQTT LIBRARY -->
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
-/* ------------------------------
-   PIP-BOY DATA DEFINITIONS
---------------------------------*/
 const PIP_DATA = {
     STAT: {
         subs: ['CONDITION', 'S.P.E.C.I.A.L.', 'PERKS'],
@@ -465,7 +604,6 @@ const PIP_DATA = {
             ]
         }
     },
-
     INV: {
         subs: ['WEAPONS', 'APPAREL', 'AID', 'MISC'],
         content: {
@@ -487,7 +625,6 @@ const PIP_DATA = {
             ]
         }
     },
-
     DATA: {
         subs: ['QUESTS', 'WORKSHOPS'],
         content: {
@@ -498,14 +635,12 @@ const PIP_DATA = {
             ]
         }
     },
-
     MAP: {
         subs: ['WORLD MAP', 'LOCAL MAP'],
         content: {
             'WORLD MAP': { type: 'map' }
         }
     },
-
     RADIO: {
         subs: ['STATION'],
         content: {
@@ -514,9 +649,6 @@ const PIP_DATA = {
     }
 };
 
-/* ------------------------------
-   RADIO STATE
---------------------------------*/
 const RADIO_TOKEN = "g977bmKI5b1CdmpybeBxi4QfXcrGVva0oUvZc4mb9lhxNkIL3L2pXhIfhI7NP2J0";
 
 const radioState = {
@@ -536,41 +668,29 @@ function freqToTopic(freq) {
     return `ttg/chat/${parts[0]}/${parts[1]}`;
 }
 
-/* ------------------------------
-   MAIN ENGINE
---------------------------------*/
 const engine = {
     currentTab: 'STAT',
     currentSub: 'CONDITION',
     isPowerOn: true,
-
-    player: {
-        hp: 185,
-        maxHp: 200,
-        ap: 95,
-        maxAp: 95,
-        level: 24
-    },
+    player: { hp: 185, maxHp: 200, ap: 95, maxAp: 95, level: 24 },
 
     init() {
         this.renderSubTabs();
         this.renderViewport();
         this.startHeartbeat();
         document.querySelector('.ui-main').style.opacity = 1;
+        console.log("Pip-Boy 3000 Mk IV Online.");
     },
 
     togglePower() {
         this.isPowerOn = !this.isPowerOn;
         const chassis = document.getElementById('main-chassis');
         chassis.classList.toggle('off', !this.isPowerOn);
+        if (this.isPowerOn) this.glitchEffect(500);
     },
 
-    /* ------------------------------
-       TAB SYSTEM
-    --------------------------------*/
     setTab(tab) {
         if (!this.isPowerOn) return;
-
         this.currentTab = tab;
         this.currentSub = PIP_DATA[tab].subs[0];
 
@@ -579,13 +699,13 @@ const engine = {
             if (btn.id === `tab-${tab}`) btn.classList.add('active');
         });
 
+        this.glitchEffect(150);
         this.renderSubTabs();
         this.renderViewport();
     },
 
     setSubTab(sub) {
         if (!this.isPowerOn) return;
-
         this.currentSub = sub;
 
         document.querySelectorAll('.sub-tab-btn').forEach(btn => {
@@ -609,9 +729,6 @@ const engine = {
         });
     },
 
-    /* ------------------------------
-       VIEWPORT RENDERING
-    --------------------------------*/
     renderViewport() {
         const viewport = document.getElementById('viewport');
         viewport.innerHTML = '';
@@ -623,15 +740,17 @@ const engine = {
             return;
         }
 
-        if (data.type === 'condition') this.renderCondition(viewport, data);
-        else if (data.type === 'map') this.renderMap(viewport);
-        else if (data.type === 'radio') this.renderRadio(viewport);
-        else this.renderList(viewport, data);
+        if (data.type === 'condition') {
+            this.renderCondition(viewport, data);
+        } else if (data.type === 'map') {
+            this.renderMap(viewport);
+        } else if (data.type === 'radio') {
+            this.renderRadio(viewport);
+        } else {
+            this.renderList(viewport, data);
+        }
     },
 
-    /* ------------------------------
-       LIST VIEW
-    --------------------------------*/
     renderList(container, items) {
         const frame = document.createElement('div');
         frame.className = 'content-frame';
@@ -666,19 +785,16 @@ const engine = {
     updateDetail(item) {
         const card = document.getElementById('detail-card');
         if (!card) return;
-
         card.innerHTML = `
             <h2>${item.name}</h2>
             <div style="margin-bottom: 10px; font-size: 0.9rem;">
-                ${item.weight ? `WEIGHT: ${item.weight} | ` : ''} VALUE: ${item.val}
+                ${item.weight ? `WEIGHT: ${item.weight} | ` : ''} 
+                VALUE: ${item.val}
             </div>
             <p>${item.desc}</p>
         `;
     },
 
-    /* ------------------------------
-       CONDITION VIEW
-    --------------------------------*/
     renderCondition(container, data) {
         const frame = document.createElement('div');
         frame.className = 'content-frame';
@@ -696,13 +812,9 @@ const engine = {
                 `).join('')}
             </div>
         `;
-
         container.appendChild(frame);
     },
 
-    /* ------------------------------
-       MAP VIEW
-    --------------------------------*/
     renderMap(container) {
         const frame = document.createElement('div');
         frame.className = 'world-map';
@@ -724,9 +836,6 @@ const engine = {
         container.appendChild(frame);
     },
 
-    /* ------------------------------
-       RADIO VIEW
-    --------------------------------*/
     renderRadio(container) {
         const frame = document.createElement('div');
         frame.className = 'radio-frame';
@@ -737,32 +846,26 @@ const engine = {
                     <div class="radio-label">FREQUENCY</div>
                     <div id="radio-freq-display" class="radio-freq-display">${radioState.freq.toFixed(1)}</div>
                     <input id="radio-slider" class="radio-slider" type="range" min="20" max="150" step="0.1" value="${radioState.freq}">
-
                     <div class="radio-label" style="margin-top:10px;">CALLSIGN / NAME</div>
                     <input id="radio-name" class="radio-input" placeholder="MY NAME IS ...">
-
                     <div class="radio-btn-row">
                         <button id="radio-connect" class="radio-button">TUNE</button>
                         <button id="radio-disconnect" class="radio-button">OFF</button>
                     </div>
                 </div>
             </div>
-
             <div class="radio-right">
                 <div id="radio-chat" class="radio-chat"></div>
-
                 <div class="radio-btn-row">
                     <input id="radio-message" class="radio-input" placeholder="TRANSMIT MESSAGE">
                     <button id="radio-send" class="radio-button">TRANSMIT</button>
                 </div>
-
                 <div id="radio-status" class="radio-status">STATUS: IDLE</div>
             </div>
         `;
 
         container.appendChild(frame);
 
-        /* HOOK UP ELEMENTS */
         const slider = document.getElementById('radio-slider');
         const freqDisplay = document.getElementById('radio-freq-display');
         const nameInput = document.getElementById('radio-name');
@@ -774,71 +877,64 @@ const engine = {
         radioState.chatEl = document.getElementById('radio-chat');
         radioState.statusEl = document.getElementById('radio-status');
 
-        /* FREQUENCY SLIDER */
         slider.oninput = () => {
             radioState.freq = Number(slider.value);
             freqDisplay.textContent = radioState.freq.toFixed(1);
             radioState.topic = freqToTopic(radioState.freq);
-
             if (radioState.connected) {
                 this.radioLog(`TUNING TO ${radioState.freq.toFixed(1)} MHz`);
                 this.radioReconnect();
             }
         };
 
-        /* CONNECT */
         connectBtn.onclick = () => {
             const rawName = nameInput.value.trim();
             if (!rawName) {
                 alert('ENTER YOUR NAME (MY NAME IS ...)');
                 return;
             }
-
             let name = rawName;
-            if (rawName.toLowerCase().startsWith("my name is"))
+            const lower = rawName.toLowerCase();
+            if (lower.startsWith('my name is')) {
                 name = rawName.slice(10).trim();
-
+            }
             if (!name) {
-                alert("INVALID NAME");
+                alert('INVALID NAME');
                 return;
             }
-
             radioState.username = name;
             this.radioConnect();
         };
 
-        /* DISCONNECT */
-        disconnectBtn.onclick = () => this.radioDisconnect();
+        disconnectBtn.onclick = () => {
+            this.radioDisconnect();
+        };
 
-        /* SEND MESSAGE */
-        sendBtn.onclick = () => this.radioSend(msgInput);
-        msgInput.addEventListener("keydown", e => {
-            if (e.key === "Enter") this.radioSend(msgInput);
+        sendBtn.onclick = () => {
+            this.radioSend(msgInput);
+        };
+
+        msgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.radioSend(msgInput);
         });
     },
 
-    /* ------------------------------
-       RADIO LOGGING
-    --------------------------------*/
     radioLog(msg) {
         if (!radioState.chatEl) return;
-
         const time = new Date().toLocaleTimeString();
         radioState.chatEl.innerHTML += `[${time}] ${msg}<br>`;
         radioState.chatEl.scrollTop = radioState.chatEl.scrollHeight;
     },
 
     setRadioStatus(text) {
-        if (radioState.statusEl)
+        if (radioState.statusEl) {
             radioState.statusEl.textContent = `STATUS: ${text}`;
+        }
     },
 
-    /* ------------------------------
-       RADIO CONNECTION
-    --------------------------------*/
     radioConnect() {
         if (radioState.client) {
-            try { radioState.client.end(); } catch {}
+            try { radioState.client.end(); } catch (e) {}
             radioState.client = null;
         }
 
@@ -856,17 +952,15 @@ const engine = {
         radioState.client.on("connect", () => {
             radioState.connected = true;
             radioState.clientId = radioState.client.options.clientId;
-
             this.setRadioStatus(`ON AIR ${radioState.freq.toFixed(1)} MHz`);
             radioState.client.subscribe(radioState.topic);
 
-            const intro = {
+            const introPacket = {
                 from: radioState.clientId,
                 text: `My name is ${radioState.username}`
             };
-
-            radioState.client.publish(radioState.topic, JSON.stringify(intro));
-            this.radioLog(`TX: ${intro.text}`);
+            radioState.client.publish(radioState.topic, JSON.stringify(introPacket));
+            this.radioLog(`TX: ${introPacket.text}`);
         });
 
         radioState.client.on("message", (topic, payload) => {
@@ -879,7 +973,8 @@ const engine = {
             const text = packet.text;
             this.radioLog(`RX: ${text}`);
 
-            if (!radioState.username && text.toLowerCase().startsWith("my name is")) {
+            const lower = text.toLowerCase();
+            if (!radioState.username && lower.startsWith('my name is')) {
                 const name = text.slice(10).trim();
                 if (name) {
                     radioState.username = name;
@@ -906,17 +1001,83 @@ const engine = {
 
     radioDisconnect() {
         if (radioState.client) {
-            try { radioState.client.end(); } catch {}
+            try { radioState.client.end(); } catch (e) {}
         }
-
         radioState.client = null;
         radioState.connected = false;
-
         this.setRadioStatus("OFF");
         this.radioLog("RADIO POWERED DOWN");
     },
 
     radioSend(msgInput) {
         if (!radioState.connected || !radioState.client) return;
+        const raw = msgInput.value.trim();
+        if (!raw) return;
 
-        const raw
+        if (!radioState.username) {
+            const lower = raw.toLowerCase();
+            if (!lower.startsWith('my name is')) {
+                alert('FIRST TRANSMISSION MUST START WITH "MY NAME IS ..."');
+                return;
+            }
+            const name = raw.slice(10).trim();
+            if (!name) {
+                alert('INVALID NAME');
+                return;
+            }
+            radioState.username = name;
+        }
+
+        const packet = {
+            from: radioState.clientId,
+            text: `${radioState.username}: ${raw}`
+        };
+
+        radioState.client.publish(radioState.topic, JSON.stringify(packet));
+        this.radioLog(`TX: ${packet.text}`);
+        msgInput.value = "";
+    },
+
+    glitchEffect(dur) {
+        const ui = document.querySelector('.ui-main');
+        ui.classList.add('glitch-flash');
+        setTimeout(() => ui.classList.remove('glitch-flash'), dur);
+    },
+
+    startHeartbeat() {
+        setInterval(() => {
+            if (!this.isPowerOn) return;
+            if (Math.random() > 0.98) this.glitchEffect(50);
+
+            if (Math.random() > 0.95) {
+                this.player.hp = Math.min(this.player.maxHp, this.player.hp + (Math.random() > 0.5 ? 1 : -1));
+                document.getElementById('hp-display').innerText = `HP ${this.player.hp}/${this.player.maxHp}`;
+            }
+        }, 1000);
+    }
+};
+
+window.onload = () => {
+    const boot = document.getElementById('boot-screen');
+    const screen = document.querySelector('.screen-container');
+    const ui = document.querySelector('.ui-main');
+
+    boot.classList.add('active');
+
+    setTimeout(() => screen.classList.add('screen-shake'), 150);
+    setTimeout(() => screen.classList.remove('screen-shake'), 650);
+
+    setTimeout(() => {
+        boot.style.display = 'none';
+        ui.style.opacity = 1;
+        engine.init();
+    }, 3600);
+
+    setInterval(() => {
+        screen.classList.add('crt-flicker');
+        setTimeout(() => screen.classList.remove('crt-flicker'), 250);
+    }, 10000);
+};
+</script>
+</body>
+</html>
