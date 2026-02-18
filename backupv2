@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pip-Boy 3000 Mk IV - Ultimate Edition</title>
+    <style>
+        :root {
+            --pip-green: #1aff80;
+            --pip-green-dim: rgba(26, 255, 128, 0.15);
+            --pip-green-med: rgba(26, 255, 128, 0.4);
+            --pip-glow: 0 0 10px rgba(26, 255, 128, 0.7);
+            --pip-bg: #0b140e;
+            --crt-curve: perspective(1000px) rotateX(1deg) rotateY(-1deg);
+            --scanline-color: rgba(18, 16, 16, 0.2);
+            --border-metal: #2c2c2c;
+        }
+
+        @font-face {
+            font-family: 'PipboyFont';
+            src: local('Courier New');
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'PipboyFont', 'Courier New', monospace;
+            overflow: hidden;
+            color: var(--pip-green);
+            text-transform: uppercase;
+        }
+
+        body.booting .ui-main {
+            opacity: 0;
+        }
+
+        .chassis-outer {
+            width: 1000px;
+            height: 750px;
+            position: relative;
+            background: #1a1a1a;
+            border-radius: 40px;
+            padding: 40px;
+            box-shadow:
+                inset 0 0 50px #000,
+                0 30px 60px rgba(0,0,0,0.8),
+                0 0 10px #222;
+            border: 4px solid #333;
+        }
+
+        .screw {
+            position: absolute;
+            width: 20px; height: 20px;
+            background: #222;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+        .s-tl { top: 20px; left: 20px; }
+        .s-tr { top: 20px; right: 20px; }
+        .s-bl { bottom: 20px; left: 20px; }
+        .s-br { bottom: 20px; right: 20px; }
+
+        .screen-container {
+            width: 100%;
+            height: 100%;
+            background: #020502;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 15px solid #222;
+            box-shadow: inset 0 0 100px #000;
+            transform: var(--crt-curve);
+        }
+
+        .crt-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            background: linear-gradient(
+                var(--scanline-color) 50%,
+                transparent 50%
+            );
+            background-size: 100% 4px;
+            opacity: 0.6;
+        }
+
+        .crt-glow {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.4) 100%);
+            z-index: 101;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+            z-index: 102;
+            pointer-events: none;
+        }
+
+        .ui-main {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 30px 60px;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.4s ease;
+            z-index: 50;
+        }
+
+        .off .ui-main { opacity: 0; }
+
+        .header-nav {
+            margin-bottom: 20px;
+        }
+
+        .primary-tabs {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 4px solid var(--pip-green);
+            padding-bottom: 5px;
+        }
+
+        .tab-btn {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            opacity: 0.4;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            opacity: 1;
+            text-shadow: var(--pip-glow);
+        }
+
+        .secondary-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 15px 0;
+        }
+
+        .sub-tab-btn {
+            font-size: 1rem;
+            letter-spacing: 2px;
+            opacity: 0.5;
+            padding: 4px 12px;
+        }
+
+        .sub-tab-btn.active {
+            opacity: 1;
+            background: var(--pip-green);
+            color: #000;
+        }
+
+        #viewport {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .content-frame {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 25px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .pip-list {
+            border-right: 2px solid var(--pip-green-dim);
+            padding-right: 15px;
+            overflow-y: auto;
+        }
+
+        .pip-item {
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            transition: 0.1s;
+        }
+
+        .pip-item.selected {
+            background: var(--pip-green-med);
+            color: #fff;
+            border-left: 5px solid var(--pip-green);
+        }
+
+        .pip-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-card {
+            border: 2px solid var(--pip-green);
+            padding: 15px;
+            background: rgba(26, 255, 128, 0.05);
+            flex: 1;
+        }
+
+        .info-card h2 {
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--pip-green-med);
+            padding-bottom: 5px;
+        }
+
+        .world-map {
+            width: 100%;
+            height: 100%;
+            background: #050a05;
+            position: relative;
+            border: 2px solid var(--pip-green);
+            background-image:
+                radial-gradient(circle, var(--pip-green-dim) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .map-icon {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border: 2px solid var(--pip-green);
+            transform: rotate(45deg);
+        }
+
+        .player-cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .stat-bar-container {
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .bar-outer {
+            height: 12px;
+            border: 1px solid var(--pip-green);
+            padding: 2px;
+        }
+
+        .bar-inner {
+            height: 100%;
+            background: var(--pip-green);
+            box-shadow: var(--pip-glow);
+            transition: width 0.4s ease;
+        }
+
+        footer {
+            height: 60px;
+            border-top: 4px solid var(--pip-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .foot-stat {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .power-toggle {
+            position: absolute;
+            right: -20px;
+            top: 150px;
+            width: 40px;
+            height: 80px;
+            background: #333;
+            border-radius: 5px;
+            box-shadow: 5px 0 10px #000;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        .power-toggle::after {
+            content: "PWR";
+            position: absolute;
+            top: -25px;
+            left: 5px;
+            font-size: 10px;
+            color: #555;
+        }
+
+        .vault-boy-frame {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 220px;
+        }
+
+        .vb-img {
+            height: 100%;
+            filter: sepia(100%) saturate(300%) hue-rotate(85deg) brightness(1.2);
+            image-rendering: pixelated;
+        }
+
+        .glitch-flash {
+            animation: flash 0.15s infinite;
+        }
+
+        @keyframes flash {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; transform: scale(1.001); }
+            100% { opacity: 0.9; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--pip-green-med); }
+
+        .radio-frame {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 25px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .radio-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .radio-dial-box {
+            border: 2px solid var(--pip-green);
+            padding: 15px;
+            background: rgba(26, 255, 128, 0.05);
+        }
+
+        .radio-label {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .radio-freq-display {
+            font-size: 2.2rem;
+            letter-spacing: 4px;
+            text-shadow: var(--pip-glow);
+        }
+
+        .radio-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .radio-btn-row {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .radio-input {
+            background: #020502;
+            border: 1px solid var(--pip-green);
+            color: var(--pip-green);
+            padding: 4px 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .radio-button {
+            background: #020502;
+            border: 1px solid var(--pip-green);
+            color: var(--pip-green);
+            padding: 4px 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .radio-button:hover {
+            background: var(--pip-green-dim);
+        }
+
+        .radio-right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .radio-chat {
+            flex: 1;
+            border: 2px solid var(--pip-green);
+            background: rgba(0,0,0,0.8);
+            padding: 8px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .radio-status {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        #boot-screen {
+            position: absolute;
+            inset: 0;
+            background: #020502;
+            color: var(--pip-green);
+            font-family: 'PipboyFont', 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #boot-screen.active {
+            opacity: 1;
+            animation: crtBoot 3.5s linear forwards;
+        }
+
+        #boot-screen pre {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            text-shadow: var(--pip-glow);
+        }
+
+        @keyframes crtBoot {
+            0%   { opacity: 0; }
+            5%   { opacity: 1; }
+            10%  { opacity: 0.2; }
+            15%  { opacity: 1; }
+            20%  { opacity: 0.3; }
+            25%  { opacity: 1; }
+            35%  { opacity: 0.4; }
+            45%  { opacity: 1; }
+            60%  { opacity: 0.9; }
+            80%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="booting">
+
+<div class="chassis-outer" id="main-chassis">
+    <div class="screw s-tl"></div>
+    <div class="screw s-tr"></div>
+    <div class="screw s-bl"></div>
+    <div class="screw s-br"></div>
+
+    <div class="power-toggle" onclick="engine.togglePower()"></div>
+
+    <div class="screen-container">
+        <div id="boot-screen">
+            <pre>
+************PIP-OS(R) V7.1.0.8**************
+COPYRIGHT 2075 CHRIS & BRANDON(R)
+LOADER V1.1
+EXEC VERSION 41.10
+64k RAM SYSTEM
+38911 BYTES FREE
+NO HOLOTAPE FOUND
+LOAD ROM(1): DEITRIX 303
+            </pre>
+        </div>
+
+        <div class="crt-overlay"></div>
+        <div class="crt-glow"></div>
+        <div class="vignette"></div>
+
+        <div class="ui-main">
+            <header class="header-nav">
+                <div class="primary-tabs">
+                    <span class="tab-btn active" id="tab-STAT" onclick="engine.setTab('STAT')">STAT</span>
+                    <span class="tab-btn" id="tab-INV" onclick="engine.setTab('INV')">INV</span>
+                    <span class="tab-btn" id="tab-DATA" onclick="engine.setTab('DATA')">DATA</span>
+                    <span class="tab-btn" id="tab-MAP" onclick="engine.setTab('MAP')">MAP</span>
+                    <span class="tab-btn" id="tab-RADIO" onclick="engine.setTab('RADIO')">RADIO</span>
+                </div>
+                <div class="secondary-tabs" id="sub-tabs-container"></div>
+            </header>
+
+            <main id="viewport"></main>
+
+            <footer>
+                <div class="foot-stat" id="hp-display">HP 185/200</div>
+                <div class="foot-stat" id="level-display">LEVEL 24</div>
+                <div class="foot-stat" id="ap-display">AP 95/95</div>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+const PIP_DATA = {
+    STAT: {
+        subs: ['CONDITION', 'S.P.E.C.I.A.L.', 'PERKS'],
+        content: {
+            'CONDITION': {
+                type: 'condition',
+                stats: [
+                    { name: 'HEAD', val: 100 },
+                    { name: 'TORSO', val: 85 },
+                    { name: 'L. ARM', val: 90 },
+                    { name: 'R. ARM', val: 40 },
+                    { name: 'L. LEG', val: 100 },
+                    { name: 'R. LEG', val: 95 }
+                ]
+            },
+            'S.P.E.C.I.A.L.': [
+                { name: 'STRENGTH', val: 8, desc: 'Your raw physical power. Affects Carry Weight and Melee Damage.' },
+                { name: 'PERCEPTION', val: 6, desc: 'Environmental awareness and V.A.T.S. accuracy.' },
+                { name: 'ENDURANCE', val: 9, desc: 'Overall fitness. Affects total HP and Action Point drain from sprinting.' },
+                { name: 'CHARISMA', val: 5, desc: 'Ability to lead and persuade others. Affects Barter prices.' },
+                { name: 'INTELLIGENCE', val: 10, desc: 'Mental acuity. Affects Experience Points gained.' },
+                { name: 'AGILITY', val: 7, desc: 'Reflexes and finesse. Affects Action Points and Sneak ability.' },
+                { name: 'LUCK', val: 4, desc: 'The measure of your general good fortune. Affects Critical Recharges.' }
+            ],
+            'PERKS': [
+                { name: 'BLOODY MESS', val: 'RANK 2', desc: '+10% bonus Damage means enemies will sometimes explode into a gory red paste.' },
+                { name: 'HACKER', val: 'RANK 3', desc: 'You can break into Master-level terminals.' },
+                { name: 'TOUGHNESS', val: 'RANK 1', desc: 'You now have +10 Damage Resistance.' }
+            ]
+        }
+    },
+    INV: {
+        subs: ['WEAPONS', 'APPAREL', 'AID', 'MISC'],
+        content: {
+            'WEAPONS': [
+                { name: '10MM PISTOL', val: 18, weight: 3, desc: 'Standard semi-automatic sidearm. High reliability.' },
+                { name: 'COMBAT RIFLE', val: 45, weight: 12, desc: 'A versatile rifle firing .45 rounds.' },
+                { name: 'POWER FIST', val: 60, weight: 6, desc: 'Pneumatic gauntlet. Devastating close-range impact.' },
+                { name: 'FRAG GRENADE', val: 150, weight: 0.5, desc: 'High-explosive fragmentation device.' }
+            ],
+            'APPAREL': [
+                { name: 'VAULT 111 SUIT', val: 5, weight: 1, desc: 'Standard Vault-Tec jumpsuit.' },
+                { name: 'COMBAT ARMOR CHEST', val: 25, weight: 15, desc: 'Medium-grade ballistic protection.' },
+                { name: 'WORN FEDORA', val: 1, weight: 0.5, desc: '+1 Charisma. You look stylish.' }
+            ],
+            'AID': [
+                { name: 'STIMPAK (12)', val: 'HEAL', weight: 0, desc: 'Restores 30% of your maximum health.' },
+                { name: 'RADAWAY (4)', val: 'RADS', weight: 0.1, desc: 'Removes 300 points of radiation.' },
+                { name: 'NUKA COLA', val: 'AP+', weight: 1, desc: 'Restores 20 Action Points.' }
+            ]
+        }
+    },
+    DATA: {
+        subs: ['QUESTS', 'WORKSHOPS'],
+        content: {
+            'QUESTS': [
+                { name: 'THE FIRST STEP', val: 'ACTIVE', desc: 'Talk to the settlers at Tenpines Bluff.' },
+                { name: 'UNLIKELY VALENTINE', val: 'ACTIVE', desc: 'Find Nick Valentine in Park Street Station.' },
+                { name: 'JEWEL OF THE COMMONWEALTH', val: 'DONE', desc: 'You have arrived at Diamond City.' }
+            ]
+        }
+    },
+    MAP: {
+        subs: ['WORLD MAP', 'LOCAL MAP'],
+        content: {
+            'WORLD MAP': { type: 'map' }
+        }
+    },
+    RADIO: {
+        subs: ['STATION'],
+        content: {
+            'STATION': { type: 'radio' }
+        }
+    }
+};
+
+const RADIO_TOKEN = "g977bmKI5b1CdmpybeBxi4QfXcrGVva0oUvZc4mb9lhxNkIL3L2pXhIfhI7NP2J0";
+
+const radioState = {
+    client: null,
+    clientId: null,
+    freq: 94.7,
+    topic: "ttg/chat/94/7",
+    username: null,
+    connected: false,
+    chatEl: null,
+    statusEl: null
+};
+
+function freqToTopic(freq) {
+    const f = Number(freq).toFixed(1);
+    const parts = f.split('.');
+    return `ttg/chat/${parts[0]}/${parts[1]}`;
+}
+
+const engine = {
+    currentTab: 'STAT',
+    currentSub: 'CONDITION',
+    isPowerOn: true,
+    player: { hp: 185, maxHp: 200, ap: 95, maxAp: 95, level: 24 },
+
+    init() {
+        this.renderSubTabs();
+        this.renderViewport();
+        this.startHeartbeat();
+        console.log("Pip-Boy 3000 Mk IV Online.");
+    },
+
+    togglePower() {
+        this.isPowerOn = !this.isPowerOn;
+        const chassis = document.getElementById('main-chassis');
+        chassis.classList.toggle('off', !this.isPowerOn);
+        if (this.isPowerOn) this.glitchEffect(500);
+    },
+
+    setTab(tab) {
+        if (!this.isPowerOn) return;
+        this.currentTab = tab;
+        this.currentSub = PIP_DATA[tab].subs[0];
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.id === `tab-${tab}`) btn.classList.add('active');
+        });
+
+        this.glitchEffect(150);
+        this.renderSubTabs();
+        this.renderViewport();
+    },
+
+    setSubTab(sub) {
+        if (!this.isPowerOn) return;
+        this.currentSub = sub;
+
+        document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.innerText === sub) btn.classList.add('active');
+        });
+
+        this.renderViewport();
+    },
+
+    renderSubTabs() {
+        const container = document.getElementById('sub-tabs-container');
+        container.innerHTML = '';
+
+        PIP_DATA[this.currentTab].subs.forEach(sub => {
+            const btn = document.createElement('div');
+            btn.className = `sub-tab-btn ${sub === this.currentSub ? 'active' : ''}`;
+            btn.innerText = sub;
+            btn.onclick = () => this.setSubTab(sub);
+            container.appendChild(btn);
+        });
+    },
+
+    renderViewport() {
+        const viewport = document.getElementById('viewport');
+        viewport.innerHTML = '';
+
+        const data = PIP_DATA[this.currentTab].content[this.currentSub];
+
+        if (!data) {
+            viewport.innerHTML = `<div class="content-frame">NOT IMPLEMENTED</div>`;
+            return;
+        }
+
+        if (data.type === 'condition') {
+            this.renderCondition(viewport, data);
+        } else if (data.type === 'map') {
+            this.renderMap(viewport);
+        } else if (data.type === 'radio') {
+            this.renderRadio(viewport);
+        } else {
+            this.renderList(viewport, data);
+        }
+    },
+
+    renderList(container, items) {
+        const frame = document.createElement('div');
+        frame.className = 'content-frame';
+
+        const listDiv = document.createElement('div');
+        listDiv.className = 'pip-list';
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'pip-info';
+        infoDiv.innerHTML = `<div class="info-card" id="detail-card"><h3>SELECT ITEM</h3></div>`;
+
+        items.forEach((item, idx) => {
+            const el = document.createElement('div');
+            el.className = `pip-item ${idx === 0 ? 'selected' : ''}`;
+            el.innerHTML = `<span>${item.name}</span><span>${item.val}</span>`;
+
+            el.onmouseover = () => {
+                document.querySelectorAll('.pip-item').forEach(i => i.classList.remove('selected'));
+                el.classList.add('selected');
+                this.updateDetail(item);
+            };
+
+            listDiv.appendChild(el);
+            if (idx === 0) this.updateDetail(item);
+        });
+
+        frame.appendChild(listDiv);
+        frame.appendChild(infoDiv);
+        container.appendChild(frame);
+    },
+
+    updateDetail(item) {
+        const card = document.getElementById('detail-card');
+        if (!card) return;
+        card.innerHTML = `
+            <h2>${item.name}</h2>
+            <div style="margin-bottom: 10px; font-size: 0.9rem;">
+                ${item.weight ? `WEIGHT: ${item.weight} | ` : ''} 
+                VALUE: ${item.val}
+            </div>
+            <p>${item.desc}</p>
+        `;
+    },
+
+    renderCondition(container, data) {
+        const frame = document.createElement('div');
+        frame.className = 'content-frame';
+
+        frame.innerHTML = `
+            <div class="vault-boy-frame">
+                <img src="assets/screen/vbnormal.png" class="vb-img">
+            </div>
+            <div class="pip-info">
+                ${data.stats.map(s => `
+                    <div class="stat-bar-container">
+                        <div class="stat-label"><span>${s.name}</span><span>${s.val}%</span></div>
+                        <div class="bar-outer"><div class="bar-inner" style="width: ${s.val}%"></div></div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(frame);
+    },
+
+    renderMap(container) {
+        const frame = document.createElement('div');
+        frame.className = 'world-map';
+
+        for (let i = 0; i < 5; i++) {
+            const icon = document.createElement('div');
+            icon.className = 'map-icon';
+            icon.style.left = (20 + Math.random() * 60) + '%';
+            icon.style.top = (20 + Math.random() * 60) + '%';
+            frame.appendChild(icon);
+        }
+
+        const player = document.createElement('div');
+        player.className = 'player-cursor';
+        player.style.left = '50%';
+        player.style.top = '50%';
+        frame.appendChild(player);
+
+        container.appendChild(frame);
+    },
+
+    renderRadio(container) {
+        const frame = document.createElement('div');
+        frame.className = 'radio-frame';
+
+        frame.innerHTML = `
+            <div class="radio-left">
+                <div class="radio-dial-box">
+                    <div class="radio-label">FREQUENCY</div>
+                    <div id="radio-freq-display" class="radio-freq-display">${radioState.freq.toFixed(1)}</div>
+                    <input id="radio-slider" class="radio-slider" type="range" min="20" max="150" step="0.1" value="${radioState.freq}">
+                    <div class="radio-label" style="margin-top:10px;">CALLSIGN / NAME</div>
+                    <input id="radio-name" class="radio-input" placeholder="MY NAME IS ...">
+                    <div class="radio-btn-row">
+                        <button id="radio-connect" class="radio-button">TUNE</button>
+                        <button id="radio-disconnect" class="radio-button">OFF</button>
+                    </div>
+                </div>
+            </div>
+            <div class="radio-right">
+                <div id="radio-chat" class="radio-chat"></div>
+                <div class="radio-btn-row">
+                    <input id="radio-message" class="radio-input" placeholder="TRANSMIT MESSAGE">
+                    <button id="radio-send" class="radio-button">TRANSMIT</button>
+                </div>
+                <div id="radio-status" class="radio-status">STATUS: IDLE</div>
+            </div>
+        `;
+
+        container.appendChild(frame);
+
+        const slider = document.getElementById('radio-slider');
+        const freqDisplay = document.getElementById('radio-freq-display');
+        const nameInput = document.getElementById('radio-name');
+        const connectBtn = document.getElementById('radio-connect');
+        const disconnectBtn = document.getElementById('radio-disconnect');
+        const sendBtn = document.getElementById('radio-send');
+        const msgInput = document.getElementById('radio-message');
+
+        radioState.chatEl = document.getElementById('radio-chat');
+        radioState.statusEl = document.getElementById('radio-status');
+
+        slider.oninput = () => {
+            radioState.freq = Number(slider.value);
+            freqDisplay.textContent = radioState.freq.toFixed(1);
+            radioState.topic = freqToTopic(radioState.freq);
+            if (radioState.connected) {
+                this.radioLog(`TUNING TO ${radioState.freq.toFixed(1)} MHz`);
+                this.radioReconnect();
+            }
+        };
+
+        connectBtn.onclick = () => {
+            const rawName = nameInput.value.trim();
+            if (!rawName) {
+                alert('ENTER YOUR NAME (MY NAME IS ...)');
+                return;
+            }
+            let name = rawName;
+            const lower = rawName.toLowerCase();
+            if (lower.startsWith('my name is')) {
+                name = rawName.slice(10).trim();
+            }
+            if (!name) {
+                alert('INVALID NAME');
+                return;
+            }
+            radioState.username = name;
+            this.radioConnect();
+        };
+
+        disconnectBtn.onclick = () => {
+            this.radioDisconnect();
+        };
+
+        sendBtn.onclick = () => {
+            this.radioSend(msgInput);
+        };
+
+        msgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.radioSend(msgInput);
+        });
+    },
+
+    radioLog(msg) {
+        if (!radioState.chatEl) return;
+        const time = new Date().toLocaleTimeString();
+        radioState.chatEl.innerHTML += `[${time}] ${msg}<br>`;
+        radioState.chatEl.scrollTop = radioState.chatEl.scrollHeight;
+    },
+
+    setRadioStatus(text) {
+        if (radioState.statusEl) {
+            radioState.statusEl.textContent = `STATUS: ${text}`;
+        }
+    },
+
+    radioConnect() {
+        if (radioState.client) {
+            try { radioState.client.end(); } catch (e) {}
+            radioState.client = null;
+        }
+
+        radioState.topic = freqToTopic(radioState.freq);
+        this.setRadioStatus(`CONNECTING ${radioState.freq.toFixed(1)} MHz`);
+        this.radioLog(`TUNING TO ${radioState.freq.toFixed(1)} MHz (${radioState.topic})`);
+
+        radioState.client = mqtt.connect("wss://mqtt.flespi.io:443", {
+            username: RADIO_TOKEN,
+            password: "",
+            clean: true,
+            clientId: "pipboy_" + Math.random().toString(16).slice(2)
+        });
+
+        radioState.client.on("connect", () => {
+            radioState.connected = true;
+            radioState.clientId = radioState.client.options.clientId;
+            this.setRadioStatus(`ON AIR ${radioState.freq.toFixed(1)} MHz`);
+            radioState.client.subscribe(radioState.topic);
+
+            const introPacket = {
+                from: radioState.clientId,
+                text: `My name is ${radioState.username}`
+            };
+            radioState.client.publish(radioState.topic, JSON.stringify(introPacket));
+            this.radioLog(`TX: ${introPacket.text}`);
+        });
+
+        radioState.client.on("message", (topic, payload) => {
+            const raw = payload.toString();
+            let text = raw;
+            let from = null;
+
+            try {
+                const packet = JSON.parse(raw);
+                if (packet && packet.text) {
+                    text = packet.text;
+                    from = packet.from || null;
+                }
+            } catch (e) {
+                // plain text from non-Pipboy clients
+            }
+
+            if (from && radioState.clientId && from === radioState.clientId) return;
+
+            this.radioLog(`RX: ${text}`);
+
+            const lower = text.toLowerCase();
+            if (!radioState.username && lower.startsWith('my name is')) {
+                const name = text.slice(10).trim();
+                if (name) {
+                    radioState.username = name;
+                    this.radioLog(`LOCAL ID SET TO: ${name}`);
+                }
+            }
+        });
+
+        radioState.client.on("close", () => {
+            radioState.connected = false;
+            this.setRadioStatus("OFFLINE");
+        });
+
+        radioState.client.on("error", () => {
+            this.setRadioStatus("ERROR");
+            this.radioLog("SIGNAL ERROR");
+        });
+    },
+
+    radioReconnect() {
+        if (!radioState.connected) return;
+        this.radioConnect();
+    },
+
+    radioDisconnect() {
+        if (radioState.client) {
+            try { radioState.client.end(); } catch (e) {}
+        }
+        radioState.client = null;
+        radioState.connected = false;
+        this.setRadioStatus("OFF");
+        this.radioLog("RADIO POWERED DOWN");
+    },
+
+    radioSend(msgInput) {
+        if (!radioState.connected || !radioState.client) return;
+        const raw = msgInput.value.trim();
+        if (!raw) return;
+
+        if (!radioState.username) {
+            const lower = raw.toLowerCase();
+            if (!lower.startsWith('my name is')) {
+                alert('FIRST TRANSMISSION MUST START WITH "MY NAME IS ..."');
+                return;
+            }
+            const name = raw.slice(10).trim();
+            if (!name) {
+                alert('INVALID NAME');
+                return;
+            }
+            radioState.username = name;
+        }
+
+        const prefix = radioState.username ? `${radioState.username}: ` : '';
+        const text = prefix + raw;
+
+        const packet = {
+            from: radioState.clientId,
+            text
+        };
+
+        radioState.client.publish(radioState.topic, JSON.stringify(packet));
+        this.radioLog(`TX: ${text}`);
+        msgInput.value = "";
+    },
+
+    glitchEffect(dur) {
+        const ui = document.querySelector('.ui-main');
+        ui.classList.add('glitch-flash');
+        setTimeout(() => ui.classList.remove('glitch-flash'), dur);
+    },
+
+    startHeartbeat() {
+        setInterval(() => {
+            if (!this.isPowerOn) return;
+            if (Math.random() > 0.98) this.glitchEffect(50);
+
+            if (Math.random() > 0.95) {
+                this.player.hp = Math.min(this.player.maxHp, this.player.hp + (Math.random() > 0.5 ? 1 : -1));
+                document.getElementById('hp-display').innerText = `HP ${this.player.hp}/${this.player.maxHp}`;
+            }
+        }, 1000);
+    }
+};
+
+window.onload = () => {
+    const boot = document.getElementById('boot-screen');
+    document.body.classList.add('booting');
+    boot.classList.add('active');
+
+    setTimeout(() => {
+        boot.classList.remove('active');
+        document.body.classList.remove('booting');
+        engine.init();
+        engine.glitchEffect(400);
+    }, 3500);
+};
+</script>
+</body>
+</html>
