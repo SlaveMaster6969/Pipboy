@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -354,9 +354,127 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--pip-green-med); }
+
+        /* RADIO UI */
+        .radio-frame {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 25px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .radio-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .radio-dial-box {
+            border: 2px solid var(--pip-green);
+            padding: 15px;
+            background: rgba(26, 255, 128, 0.05);
+        }
+
+        .radio-label {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .radio-freq-display {
+            font-size: 2.2rem;
+            letter-spacing: 4px;
+            text-shadow: var(--pip-glow);
+        }
+
+        .radio-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .radio-btn-row {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .radio-input {
+            background: #020502;
+            border: 1px solid var(--pip-green);
+            color: var(--pip-green);
+            padding: 4px 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .radio-button {
+            background: #020502;
+            border: 1px solid var(--pip-green);
+            color: var(--pip-green);
+            padding: 4px 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .radio-button:hover {
+            background: var(--pip-green-dim);
+        }
+
+        .radio-right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .radio-chat {
+            flex: 1;
+            border: 2px solid var(--pip-green);
+            background: rgba(0,0,0,0.8);
+            padding: 8px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .radio-status {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* STARTUP SCREEN */
+        #boot-screen {
+            position: fixed;
+            inset: 0;
+            background: #020502;
+            color: var(--pip-green);
+            font-family: 'PipboyFont', 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #boot-screen pre {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            text-shadow: var(--pip-glow);
+        }
     </style>
 </head>
 <body>
+
+<div id="boot-screen">
+    <pre>
+************PIP-OS(R) V7.1.0.8**************
+COPYRIGHT 2075 CHRIS & BRANDON(R)
+LOADER V1.1
+EXEC VERSION 41.10
+64k RAM SYSTEM
+38911 BYTES FREE
+NO HOLOTAPE FOUND
+LOAD ROM(1): DEITRIX 303
+    </pre>
+</div>
 
 <div class="chassis-outer" id="main-chassis">
     <div class="screw s-tl"></div>
@@ -398,6 +516,7 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
 /**
  * PIP-BOY 3000 Mk IV CORE ENGINE
@@ -474,16 +593,30 @@ const PIP_DATA = {
         }
     },
     RADIO: {
-        subs: ['STATIONS'],
+        subs: ['STATION'],
         content: {
-            'STATIONS': [
-                { name: 'DIAMOND CITY RADIO', val: 'ON', desc: 'Playing: "Maybe" by The Ink Spots' },
-                { name: 'CLASSICAL RADIO', val: 'OFF', desc: 'Broadcasting high-culture symphonies.' },
-                { name: 'MILITARY FREQUENCY', val: 'OFF', desc: 'Encrypted brotherhood signals.' }
-            ]
+            'STATION': { type: 'radio' }
         }
     }
 };
+
+const RADIO_TOKEN = "g977bmKI5b1CdmpybeBxi4QfXcrGVva0oUvZc4mb9lhxNkIL3L2pXhIfhI7NP2J0";
+
+const radioState = {
+    client: null,
+    freq: 94.7,
+    topic: "ttg/chat/94/7",
+    username: null,
+    connected: false,
+    chatEl: null,
+    statusEl: null
+};
+
+function freqToTopic(freq) {
+    const f = Number(freq).toFixed(1); // 94.7
+    const parts = f.split('.');        // ["94","7"]
+    return `ttg/chat/${parts[0]}/${parts[1]}`;
+}
 
 const engine = {
     currentTab: 'STAT',
@@ -564,6 +697,8 @@ const engine = {
             this.renderCondition(viewport, data);
         } else if (data.type === 'map') {
             this.renderMap(viewport);
+        } else if (data.type === 'radio') {
+            this.renderRadio(viewport);
         } else {
             this.renderList(viewport, data);
         }
@@ -655,6 +790,192 @@ const engine = {
         container.appendChild(frame);
     },
 
+    renderRadio(container) {
+        const frame = document.createElement('div');
+        frame.className = 'radio-frame';
+
+        frame.innerHTML = `
+            <div class="radio-left">
+                <div class="radio-dial-box">
+                    <div class="radio-label">FREQUENCY</div>
+                    <div id="radio-freq-display" class="radio-freq-display">${radioState.freq.toFixed(1)}</div>
+                    <input id="radio-slider" class="radio-slider" type="range" min="20" max="150" step="0.1" value="${radioState.freq}">
+                    <div class="radio-label" style="margin-top:10px;">CALLSIGN / NAME</div>
+                    <input id="radio-name" class="radio-input" placeholder="MY NAME IS ...">
+                    <div class="radio-btn-row">
+                        <button id="radio-connect" class="radio-button">TUNE</button>
+                        <button id="radio-disconnect" class="radio-button">OFF</button>
+                    </div>
+                </div>
+            </div>
+            <div class="radio-right">
+                <div id="radio-chat" class="radio-chat"></div>
+                <div class="radio-btn-row">
+                    <input id="radio-message" class="radio-input" placeholder="TRANSMIT MESSAGE">
+                    <button id="radio-send" class="radio-button">TRANSMIT</button>
+                </div>
+                <div id="radio-status" class="radio-status">STATUS: IDLE</div>
+            </div>
+        `;
+
+        container.appendChild(frame);
+
+        const slider = document.getElementById('radio-slider');
+        const freqDisplay = document.getElementById('radio-freq-display');
+        const nameInput = document.getElementById('radio-name');
+        const connectBtn = document.getElementById('radio-connect');
+        const disconnectBtn = document.getElementById('radio-disconnect');
+        const sendBtn = document.getElementById('radio-send');
+        const msgInput = document.getElementById('radio-message');
+
+        radioState.chatEl = document.getElementById('radio-chat');
+        radioState.statusEl = document.getElementById('radio-status');
+
+        slider.oninput = () => {
+            radioState.freq = Number(slider.value);
+            freqDisplay.textContent = radioState.freq.toFixed(1);
+            radioState.topic = freqToTopic(radioState.freq);
+            if (radioState.connected) {
+                this.radioLog(`TUNING TO ${radioState.freq.toFixed(1)} MHz`);
+                this.radioReconnect();
+            }
+        };
+
+        connectBtn.onclick = () => {
+            const rawName = nameInput.value.trim();
+            if (!rawName) {
+                alert('ENTER YOUR NAME (MY NAME IS ...)');
+                return;
+            }
+            let name = rawName;
+            const lower = rawName.toLowerCase();
+            if (lower.startsWith('my name is')) {
+                name = rawName.slice(10).trim();
+            }
+            if (!name) {
+                alert('INVALID NAME');
+                return;
+            }
+            radioState.username = name;
+            this.radioConnect();
+        };
+
+        disconnectBtn.onclick = () => {
+            this.radioDisconnect();
+        };
+
+        sendBtn.onclick = () => {
+            this.radioSend(msgInput);
+        };
+
+        msgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.radioSend(msgInput);
+        });
+    },
+
+    radioLog(msg) {
+        if (!radioState.chatEl) return;
+        const time = new Date().toLocaleTimeString();
+        radioState.chatEl.innerHTML += `[${time}] ${msg}<br>`;
+        radioState.chatEl.scrollTop = radioState.chatEl.scrollHeight;
+    },
+
+    setRadioStatus(text) {
+        if (radioState.statusEl) {
+            radioState.statusEl.textContent = `STATUS: ${text}`;
+        }
+    },
+
+    radioConnect() {
+        if (radioState.client) {
+            try { radioState.client.end(); } catch(e) {}
+            radioState.client = null;
+        }
+
+        radioState.topic = freqToTopic(radioState.freq);
+        this.setRadioStatus(`CONNECTING ${radioState.freq.toFixed(1)} MHz`);
+        this.radioLog(`TUNING TO ${radioState.freq.toFixed(1)} MHz (${radioState.topic})`);
+
+        radioState.client = mqtt.connect("wss://mqtt.flespi.io:443", {
+            username: RADIO_TOKEN,
+            password: "",
+            clean: true
+        });
+
+        radioState.client.on("connect", () => {
+            radioState.connected = true;
+            this.setRadioStatus(`ON AIR ${radioState.freq.toFixed(1)} MHz`);
+            radioState.client.subscribe(radioState.topic);
+            const intro = `My name is ${radioState.username}`;
+            radioState.client.publish(radioState.topic, intro);
+            this.radioLog(`TX: ${intro}`);
+        });
+
+        radioState.client.on("message", (topic, payload) => {
+            const text = payload.toString();
+            this.radioLog(`RX: ${text}`);
+            const lower = text.toLowerCase();
+            if (!radioState.username && lower.startsWith('my name is')) {
+                const name = text.slice(10).trim();
+                if (name) {
+                    radioState.username = name;
+                    this.radioLog(`LOCAL ID SET TO: ${name}`);
+                }
+            }
+        });
+
+        radioState.client.on("close", () => {
+            radioState.connected = false;
+            this.setRadioStatus("OFFLINE");
+        });
+
+        radioState.client.on("error", () => {
+            this.setRadioStatus("ERROR");
+            this.radioLog("SIGNAL ERROR");
+        });
+    },
+
+    radioReconnect() {
+        if (!radioState.connected) return;
+        this.radioConnect();
+    },
+
+    radioDisconnect() {
+        if (radioState.client) {
+            try { radioState.client.end(); } catch(e) {}
+        }
+        radioState.client = null;
+        radioState.connected = false;
+        this.setRadioStatus("OFF");
+        this.radioLog("RADIO POWERED DOWN");
+    },
+
+    radioSend(msgInput) {
+        if (!radioState.connected || !radioState.client) return;
+        const raw = msgInput.value.trim();
+        if (!raw) return;
+
+        if (!radioState.username) {
+            const lower = raw.toLowerCase();
+            if (!lower.startsWith('my name is')) {
+                alert('FIRST TRANSMISSION MUST START WITH "MY NAME IS ..."');
+                return;
+            }
+            const name = raw.slice(10).trim();
+            if (!name) {
+                alert('INVALID NAME');
+                return;
+            }
+            radioState.username = name;
+        }
+
+        const prefix = radioState.username ? `${radioState.username}: ` : '';
+        const msg = prefix + raw;
+        radioState.client.publish(radioState.topic, msg);
+        this.radioLog(`TX: ${msg}`);
+        msgInput.value = "";
+    },
+
     glitchEffect(dur) {
         const ui = document.querySelector('.ui-main');
         ui.classList.add('glitch-flash');
@@ -662,12 +983,10 @@ const engine = {
     },
 
     startHeartbeat() {
-        // Aesthetic flickering and stat updates
         setInterval(() => {
             if (!this.isPowerOn) return;
             if (Math.random() > 0.98) this.glitchEffect(50);
             
-            // Random HP fluctuation simulation
             if (Math.random() > 0.95) {
                 this.player.hp = Math.min(this.player.maxHp, this.player.hp + (Math.random() > 0.5 ? 1 : -1));
                 document.getElementById('hp-display').innerText = `HP ${this.player.hp}/${this.player.maxHp}`;
@@ -676,8 +995,13 @@ const engine = {
     }
 };
 
-window.onload = () => engine.init();
-
+window.onload = () => {
+    const boot = document.getElementById('boot-screen');
+    setTimeout(() => {
+        boot.style.display = 'none';
+        engine.init();
+    }, 3500);
+};
 </script>
 </body>
 </html>
